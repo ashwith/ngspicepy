@@ -8,6 +8,26 @@ libngspice = cdll.LoadLibrary("/usr/local/lib/libngspice.so.0")
 
 # C structs that are required by the shared library
 
+
+
+class ngcomplex_t(Structure):
+    _fields_=[("cx_real",c_double),
+                ("cx_imag",c_double)]
+class vector_info(Structure):
+    _fields_ = [("v_name", c_char_p),
+            ("v_type", c_int),
+            ("v_flags", c_short),
+            ("v_realdata",c_double_p),
+            ("v_compdata",POINTER(ngcomplex_t)),
+            ("v_length",c_int)]
+
+class vecinfo(Structure)           
+  _fields_ = [("number", c_int),
+            ("vecname",c_char_p),
+            ("is_real", c_bool),
+            ("pdvec", c_void_p),
+            ("pdvecscale", c_void_p)]
+       
 class vecinfoall(Structure):
     _fields_ = [("name", c_char_p),
             ("title", c_char_p),
