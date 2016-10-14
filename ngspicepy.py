@@ -147,3 +147,33 @@ def send_command(command):
     while not send_char_queue.empty():
         output.append(send_char_queue.get_nowait())
     return output
+
+
+def get_plot_names():
+    plot_name_array = libngspice.ngSpice_AllPlots()
+    names_list = []
+    name = plot_name_array[0]
+    i = 1
+    while name is not None:
+        names_list.append(name.decode())
+        name = plot_name_array[i]
+        i += 1
+
+    return names_list
+
+
+def get_vector_names(plot_name):
+    if plot_name not in get_plot_names():
+        raise ValueError("Given plot name doesn't exist")
+    else:
+        vector_names = libngspice.ngSpice_AllVecs(
+                create_string_buffer(plot_name.encode()))
+    names_list = []
+    name = vector_names[0]
+    i = 1
+    while name is not None:
+        names_list.append(name.decode())
+        name = vector_names[i]
+        i = i+1
+
+    return names_list
