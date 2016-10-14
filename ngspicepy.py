@@ -162,6 +162,12 @@ def get_plot_names():
     return names_list
 
 
+# Function to return current plot
+def current_plot():
+    plot_name = libngspice.ngSpice_CurPlot()
+    return (plot_name.decode())
+
+
 def get_vector_names(plot_name):
     if plot_name not in get_plot_names():
         raise ValueError("Given plot name doesn't exist")
