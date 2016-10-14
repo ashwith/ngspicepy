@@ -183,3 +183,12 @@ def get_vector_names(plot_name):
         i = i+1
 
     return names_list
+    
+def get_data(vector_name):
+    info=libngspice.ngGet_Vec_Info(create_string_buffer(vector_name))
+    data=np.squeeze(np.ctypeslib.as_array(
+    info.contents.v_realdata,shape=(1,info.contents.v_length)))
+    return data
+    
+    
+    
