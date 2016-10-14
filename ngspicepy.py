@@ -1,7 +1,8 @@
 import string
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
-        c_void_p, cdll, CFUNCTYPE, create_string_buffer,\
-        POINTER, Structure
+    c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
+    POINTER, Structure
+from os.path import isfile
 from queue import Queue
 
 # Load the ngspice shared library.
@@ -173,13 +174,41 @@ def get_vector_names(plot_name):
         raise ValueError("Given plot name doesn't exist")
     else:
         vector_names = libngspice.ngSpice_AllVecs(
-                create_string_buffer(plot_name.encode()))
+            create_string_buffer(plot_name.encode()))
     names_list = []
     name = vector_names[0]
     i = 1
     while name is not None:
         names_list.append(name.decode())
         name = vector_names[i]
-        i = i+1
+        i = i + 1
 
     return names_list
+
+
+def load_netlist(netlist):
+
+    # If netlist is a file then just source it.
+    # If it is a string but not a file, assume that it contains
+    # one or more netlist lines. Convert this to a list of strings for each
+    # line
+    # If it is a list, assume each entry is a line of the netlist.
+    if type(netlist) == str:
+        if isfile(netlist):
+            send_command('source ' + netlist)
+            return
+        else:
+            netlist_list = netlist.split('\n')
+    elif type(netlist) == list:
+        netlist_list = netlist
+    else:
+        raise TypeError('Netlist format unsupported. Must be a string or list')
+
+    c_char_p_array = c_char_p * (len(netlist_list) + 1)
+    netlist_str = c_char_p_array()
+
+    for i, line in enumerate(netlist_list):
+        netlist_str[i] = cast(create_string_buffer(line.encode()), c_char_p)
+    netlist_str[len(netlist_list)] = None
+
+    libngspice.ngSpice_Circ(netlist_str)
