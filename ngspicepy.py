@@ -147,3 +147,8 @@ def send_command(command):
     while not send_char_queue.empty():
         output.append(send_char_queue.get_nowait())
     return output
+    
+#Function to return current plot
+def current_plot():
+    plot_name=libngspice.ngSpice_CurPlot()
+    return (plot_name.decode())
