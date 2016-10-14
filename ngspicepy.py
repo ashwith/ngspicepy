@@ -1,4 +1,7 @@
 import string
+
+import numpy as np
+
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
     c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
     POINTER, Structure
@@ -184,6 +187,16 @@ def get_vector_names(plot_name):
         i = i + 1
 
     return names_list
+
+
+def get_data(vector_name):
+    # TODO: Check if vector_name is valid
+    # Check if vector length is zero
+    info = libngspice.ngGet_Vec_Info(
+        create_string_buffer(vector_name.encode()))
+    data = np.squeeze(np.ctypeslib.as_array(
+        info.contents.v_realdata, shape=(1, info.contents.v_length)))
+    return data
 
 
 def load_netlist(netlist):
