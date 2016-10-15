@@ -1,12 +1,13 @@
 import string
 
-import numpy as np
 
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
     c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
     POINTER, Structure
 from os.path import isfile
 from queue import Queue
+
+import numpy as np
 
 # Load the ngspice shared library.
 # TODO: Figure out the path intelligently
@@ -90,9 +91,8 @@ class vecvaluesall(Structure):
 # Callback functions
 @CFUNCTYPE(c_int, c_int, c_bool, c_bool, c_int, c_void_p)
 def ControlledExit(exit_status, is_unload, is_quit, lib_id, ret_ptr):
-    print(exit_status)
-    print(is_unload)
-    print(is_quit)
+    if not exit_status == 0 or not is_quit:
+        raise SystemError('Invalid command or netlist.')
     return 0
 
 
@@ -121,7 +121,8 @@ def SendStat(sim_stat, lib_id, ret_ptr):
 
 
 # Initialize ngspice
-libngspice.ngSpice_Init(SendChar, SendStat, ControlledExit, None, None, None)
+libngspice.ngSpice_Init(SendChar, SendStat, ControlledExit, None,
+                        None, None)
 
 # Specify API argument types and return types
 libngspice.ngSpice_Command.argtypes = [c_char_p]
@@ -220,6 +221,37 @@ def get_data(vector_name):
     return data
 
 
+def get_all_data(plot_name=None):
+    """Return a dictionary of all vectors in the specified plot."""
+
+    vector_names = get_vector_names(plot_name)
+
+    vector_data = {}
+    for vector_name in vector_names:
+        print(vector_name)
+        vector_data[vector_name] = get_data(vector_name)
+
+    return vector_data
+
+
+def set_options(*args, **kwargs):
+    """Passes simulator options to ngspice.
+
+    Options may either be entered as a string or keyword arguments.
+    Examples:
+    set_options(trtol=1, temp=300)
+    set_options('trtol=1')
+    """
+    for option in args:
+        send_command('option ' + str(option))
+    for option in kwargs:
+        if kwargs[option] is None:
+            send_command('option ' + option)
+        else:
+            send_command('option ' + option + '=' +
+                         str(kwargs[option]))
+
+
 def load_netlist(netlist):
     """Load ngspice with the specified netlist.
 
@@ -241,7 +273,8 @@ def load_netlist(netlist):
     elif type(netlist) == list:
         netlist_list = netlist
     else:
-        raise TypeError('Netlist format unsupported. Must be a string or list')
+        raise TypeError('Netlist format unsupported.\
+                Must be a string or list')
 
     c_char_p_array = c_char_p * (len(netlist_list) + 1)
     netlist_str = c_char_p_array()
