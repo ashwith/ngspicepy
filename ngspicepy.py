@@ -207,7 +207,24 @@ def send_command(command):
 
 
 def run_dc(*args, **kwargs):
+    """Run a DC simulation on ngspice
 
+    The argument(s) are either:
+    1. A single string containing the source(s) followed by their
+    start, stop and step values.
+    2. src, start, stop, step[, src2, start, stop, step]
+    3. The arguments in 2. specified as keyword arguments.
+
+    src and src2 must be strings. start, stop and step can be either
+    strings or floats. If they are strings, they must contain only a
+    float and optionally one of ngspice's scale factors and no spaces.
+
+    Examples:
+    dc('v1 0 1 0.1')
+    dc('v2 0 1 1m v2 0 1 0.3')
+    dc('v1', 0, '1meg', '1k')
+    dc(src='v1', start=0, stop=1, step=0.1, src2=v2, start=0, step=0.3, stop=1)
+    """
     cmd = OrderedDict()
     cmd['src'] = ""
     cmd['start'] = ""
