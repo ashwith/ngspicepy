@@ -185,10 +185,56 @@ def get_vector_names(plot_name):
     return names_list
     
 def get_data(vector_name):
-    info=libngspice.ngGet_Vec_Info(create_string_buffer(vector_name))
-    data=np.squeeze(np.ctypeslib.as_array(
-    info.contents.v_realdata,shape=(1,info.contents.v_length)))
-    return data
+
+    if vector_name not in  get_vector_names(#what argument to give or just access the return result of this):
+        raise ValueError("Given vector name doesn't exist")           
+    else:
+        {
+        info=libngspice.ngGet_Vec_Info(create_string_buffer(
+        vector_name))
+        data=np.squeeze(np.ctypeslib.as_array(
+        info.contents.v_realdata,shape=(1,info.contents.v_length)))
+        }
+        return data
+   
     
+
+def run_dc(*kwargs):
+    vstart=0
+    vstop=10
+    vincr=.1
+    src2=None                #set to the default values or raise value errors
+    start2=None
+    stop2=None
+    incr2=None
+    dc_command=' '.join([ 'i' for i in kwargs])
+    dc_result=send_command(dc_command)
+    return dc_result
+
+def run_ac(*kwargs):
+   nd,fstart,stop=[(v1,v2,v3) if 'dec' in kwargs]
+   octt,fstart,stop=[(v1,v2,v3) if 'dec' in kwargs]
+   lin,fstart,stop=[(v1,v2,v3) if 'dec' in kwargs]
+   
+    ac_command=' '.join([ 'i' for i in kwargs])
+    ac_result=send_command(ac_command)
+    return dc_result
+    
+def run_tran(*kwargs):
+    tstep=1ns
+    tstop=1000ns
+    tstart=500ns
+    tmax=None
+    uic=None
+    
+    tran_command=' '.join([ 'i' for i in kwargs])
+    tran_result=send_command(ac_command)
+    return dc_result
+    
+def run_op():
+    op_result=send_command(op)
+    return op_result
+    
+   
     
     
