@@ -159,6 +159,64 @@ def send_command(command):
     return output
 
 
+def run_dc(**kwargs):
+    vstart = 0
+    vstop = 10
+    vincr = .1
+    src2 = None
+    start2 = None
+    stop2 = None
+    incr2 = None
+
+    if vincr == 0:
+        raise ValueError("Value of vincr cannt be zero")
+    if vincr > 0 and vstart > vstop:
+        raise ValueError("Inappropriate values of vincr, vstart or vstop")
+    if vincr < 0 and vstart < vstop:
+        raise ValueError("Inappropriate values of vincr, vstart or vstop")
+
+    dc_args = [str(i) for i in kwargs]
+    dc_command = ' '.join([i for i in dc_args])
+    dc_result = send_command(dc_command)
+    return dc_result
+
+
+def run_ac(*kwargs):
+   #nd, fstart, fstop = [(10,1,10) if 'dec' in kwargs]
+   #no, fstart, fstop = [(10,1,2) if 'oct' in kwargs]
+   #np, fstart, fstop = [(10,1,10) if 'lin' in kwargs]
+   
+   if fstart <= 0 or fstop <= 0:
+    raise ValueError("Frequency cannot be negative or zero!!")
+    
+    ac_args = [ str(i) for i in kwargs]
+    ac_command = ' '.join([ i for i in ac_args])
+    ac_result = send_command(ac_command)
+    return ac_result
+    
+
+def run_tran(*kwargs):
+    tstep = "1n"
+    tstop = "10n"
+    tstart = 0
+    tmax = None
+    uic = None
+    
+    if tstep <= 0:
+        raise ValueError(" Value of step cannot be zero")
+    if tstart > tstop:
+        raise ValueError("tstart cannot be greater that tstop")
+    
+    tran_args = [ str(i) for i in kwargs]
+    tran_command = ' '.join([ i for i in tran_args])
+    tran_result = send_command(tran_command)
+    return tran_result
+    
+def run_op():
+    op_result = send_command(op)
+    return op_result
+
+
 def get_plot_names():
     """Return a list of plot names.
 
@@ -211,95 +269,26 @@ def get_vector_names(plot_name=None):
     return names_list
 
 
-def get_data(vector_name):
-    if '.' in argument:
-        plot_name, vector_name = argument.split('.')
+def get_data(vector_arg, plot_arg=None):
+
+    if '.' in vector_arg:
+        plot_name, vector_name = vector_arg.split('.')
         if vector_name not in get_vector_names(plot_name):
             raise ValueError("Inapproriate Vector Name")
-        else:
-            info = libngspice.ngGet_Vec_Info(
-            create_string_buffer(vector_name.encode()))
-            length = info.contents.v_length()
-            if length <= 0:
-                raise ValueError("Inapproriate Vector Name")
-            else:
-                data = np.squeeze(np.ctypeslib.as_array(
-                info.contents.v_realdata, shape=(1, info.contents.v_length)))
-            return data
     else:
-        if vector_name not in get_vector_names():
-            raise ValueError("Inapproriate vector_name")
-        else:
-                info = libngspice.ngGet_Vec_Info(
-            create_string_buffer(vector_name.encode()))
-            length = info.contents.v_length()
-            if length <= 0:
-                raise ValueError("Inapproriate vector_name")
-            else:
-                data = np.squeeze(np.ctypeslib.as_array(
-                info.contents.v_realdata, shape=(1, info.contents.v_length)))
-            return data
-        
-    
+        if vector_arg not in get_vector_names(plot_arg):
+            raise ValueError("Inapproriate vector name")
+        if plot_arg is not None:
+            vector_arg = ".".join([plot_arg, vector_arg])
 
-def run_dc(**kwargs):
-    vstart = 0
-    vstop = 10
-    vincr = .1
-    src2 = None                
-    start2 = None
-    stop2 = None
-    incr2 = None
-    
-    if vincr =0:
-        raise ValueError("Value of vincr cannt be zero")
-    if vincr > 0 and vstart > vstop:
-        raise ValueError("Inappropriate values of vincr,
-         vstart or vstop")
-    if vincr < 0 and vstart < vstop:
-        raise ValueError("Inappropriate values of vincr,
-         vstart or vstop")
-    
-    dc_args = [ str(i) for i in kwargs]
-    dc_command = ' '.join([ i for i in dc_args]) 
-    dc_result = send_command(dc_command)
-    return dc_result
-
-
-def run_ac(*kwargs):
-   nd,fstart,fstop = [(10,1,10) if 'dec' in kwargs]
-   no,fstart,fstop = [(10,1,2) if 'oct' in kwargs]
-   np,fstart,fstop = [(10,1,10) if 'lin' in kwargs]
-   
-   if fstart <= 0 or fstop <= 0:
-    raise ValueError("Frequency cannot be negative or zero!!")
-    
-    ac_args = [ str(i) for i in kwargs]
-    ac_command = ' '.join([ i for i in ac_args])
-    ac_result = send_command(ac_command)
-    return ac_result
-    
-
-def run_tran(*kwargs):
-    tstep = 1ns
-    tstop = 10ns
-    tstart = 0
-    tmax = None
-    uic = None
-    
-    if tstep <= 0:
-        raise ValueError(" Value of step cannot be zero")
-    if tstart > tstop:
-        raise ValueError("tstart cannot be greater that tstop")
-    
-    tran_args = [ str(i) for i in kwargs]
-    tran_command = ' '.join([ i for i in tran_args])
-    tran_result = send_command(tran_command)
-    return tran_result
-    
-def run_op():
-    op_result = send_command(op)
-    return op_result
+    info = libngspice.ngGet_Vec_Info(
+        create_string_buffer(vector_arg.encode()))
+    if info.contents.v_length <= 0:
+        raise ValueError("Inapproriate vector name")
+    else:
+        data = np.squeeze(np.ctypeslib.as_array(
+            info.contents.v_realdata, shape=(1, info.contents.v_length)))
+    return data
 
 
 def get_all_data(plot_name=None):
