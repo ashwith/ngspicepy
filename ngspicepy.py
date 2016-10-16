@@ -323,7 +323,6 @@ def run_dc(*args, **kwargs):
 
 
 def run_ac(*args,**kwargs):
-     run_dc(*args, **kwargs):
     """Run a AC simulation on ngspice
 
     The argument(s) are either:
@@ -344,11 +343,21 @@ def run_ac(*args,**kwargs):
     dc('dec 10 1 10')
     dc('dec 10 1k 100hz')
     dc('dec', 10, '1k', '100hz')
-    dc(variation='dec', npoints=0, fstart=1, fstep=10)
+    dc(variation = 'dec', npoints = 0, fstart = 1, fstep = 10)
     """
+    
+    cmd = OrderedDict()
+    cmd['variation'] = ""
+    cmd['npoints'] = ""
+    cmd['fstart'] = ""
+    cmd['fstop'] = ""
+    
+    is_parametric = False
 
-   
-   if fstart <= 0 or fstop <= 0:
+     
+     
+     
+     if fstart <= 0 or fstop <= 0:
     raise ValueError("Frequency cannot be negative or zero!!")
     
     ac_args = [ str(i) for i in kwargs]
