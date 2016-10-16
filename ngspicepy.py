@@ -220,10 +220,10 @@ def run_dc(*args, **kwargs):
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
-    dc('v1 0 1 0.1')
-    dc('v2 0 1 1m v2 0 1 0.3')
-    dc('v1', 0, '1meg', '1k')
-    dc(src='v1', start=0, stop=1, step=0.1, src2=v2, start=0, step=0.3, stop=1)
+    run_dc('v1 0 1 0.1')
+    run_dc('v2 0 1 1m v2 0 1 0.3')
+    run_dc('v1', 0, '1meg', '1k')
+    run_dc(src='v1', start=0, stop=1, step=0.1, src2=v2, start=0, step=0.3, stop=1)
     """
     cmd = OrderedDict()
     cmd['src'] = ""
@@ -247,7 +247,7 @@ def run_dc(*args, **kwargs):
     if len(args) == 1:
         clean_arg = ' '.join(args[0].split())
         for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
-            cmd[key] = arg
+            cmd[key] = xstr(arg)
     else:
         # Case 2:
         # -------
@@ -295,8 +295,8 @@ def run_dc(*args, **kwargs):
         if any(arg in empty_args for arg in required_args):
             missing_args =\
                 empty_args.intersection(required_args)
-            raise ValueError('Arguments missing: ' + '\
-                '.join(missing_args))
+            raise ValueError('Arguments missing: ' + 
+                ' '.join(missing_args))
         else:
             is_parametric = True
 
@@ -323,7 +323,6 @@ def run_dc(*args, **kwargs):
 
 
 def run_ac(*args,**kwargs):
-     run_dc(*args, **kwargs):
     """Run a AC simulation on ngspice
 
     The argument(s) are either:
@@ -341,15 +340,15 @@ def run_ac(*args,**kwargs):
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
-    dc('dec 10 1 10')
-    dc('dec 10 1k 100hz')
-    dc('dec', 10, '1k', '100hz')
-    dc(variation='dec', npoints=0, fstart=1, fstep=10)
+    run_ac('dec 10 1 10')
+    run_ac('dec 10 1k 10meg')
+    run_ac('dec', 10, '1k', '100k')
+    run_ac(variation='dec', npoints=0, fstart=1, fstep=10)
     """
 
    
-   if fstart <= 0 or fstop <= 0:
-    raise ValueError("Frequency cannot be negative or zero!!")
+    if fstart <= 0 or fstop <= 0:
+        raise ValueError("Frequency cannot be negative or zero!!")
     
     ac_args = [ str(i) for i in kwargs]
     ac_command = ' '.join([ i for i in ac_args])
