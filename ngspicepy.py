@@ -353,7 +353,12 @@ def run_tran(*kwargs):
     tran_result = send_command(tran_command)
     return tran_result
     
+
+
 def run_op():
+    """The inclusion of this line in an input file directs
+     ngspice to determine the dc operating point of the 
+     circuit """
     op_result = send_command(op)
     return op_result
 
@@ -377,8 +382,12 @@ def get_plot_names():
     return names_list
 
 
-# Function to return current plot
+
 def current_plot():
+    """Returns the vector name of the current plot. 
+     
+     plot_name specifies the plot whose vectors need
+      to be returned"""
     plot_name = libngspice.ngSpice_CurPlot()
     return (plot_name.decode())
 
@@ -411,6 +420,10 @@ def get_vector_names(plot_name=None):
 
 
 def get_data(vector_arg, plot_arg=None):
+    """Enables the user to get the data availabe in a given vector
+    
+    vector_arg denotes the vector name
+    plot_agr denotes the plot name """
 
     if '.' in vector_arg:
         plot_name, vector_name = vector_arg.split('.')
@@ -431,8 +444,8 @@ def get_data(vector_arg, plot_arg=None):
             data = np.squeeze(np.ctypeslib.as_array(
                 info.contents.v_realdata, shape=(1, info.contents.v_length)))
         elif info.contents.v_compdata:
-             data = np.squeeze(np.ctypeslib.as_array(
-                info.contents.v_realdata, shape=(1, info.contents.v_length)))
+           #  data = np.squeeze(np.ctypeslib.as_array(
+            #    info.contents.v_realdata, shape=(1, info.contents.v_length)))
         return data
 
 
