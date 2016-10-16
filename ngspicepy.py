@@ -228,7 +228,7 @@ def run_dc(*args, **kwargs):
     1. A single string containing the source(s) followed by their
     start, stop and step values.
     2. src, start, stop, step[, src2, start, stop, step]
-    3. The arguments in 2. specified as keyword arguments.
+    3. The arguments in 2. Specified as keyword arguments.
 
     src and src2 must be strings. start, stop and step can be either
     strings or floats. If they are strings, they must contain only a
@@ -304,7 +304,7 @@ def run_dc(*args, **kwargs):
             cmd['src2'] == "":
         raise ValueError('Second source not specified.')
 
-    # 2b. Second source is specifie, check if its required arguments
+    # 2b. Second source is specified, check if its required arguments
     # are empty.
     if cmd['src2'] != "":
         required_args = set(['start2', 'stop2', 'step2'])
@@ -349,7 +349,7 @@ def run_ac(*args,**kwargs):
  
     2. Format: dec/oct/lin nd/op/np fstart fstop
  
-    3. The arguments in 2. specified as keyword arguments.
+    3. The arguments in 2. Specified as keyword arguments.
 
     dec/oct/lin are strings. nd/op/np, fstart and fstop can be 
     strings or floats If they are strings,they must contain only a
@@ -391,7 +391,7 @@ def run_tran(**kwargs):
     1. A single string contains tstep, tstop, tstart, tmax and uic
     values. The value of tmax and uic are optional.
     2. tstep tstop <tstart <tmax>> <uic>
-    3. The arguments in 2. specified as keyword arguments.
+    3. The arguments in 2. Specified as keyword arguments.
 
     start, stop and step can be either strings or floats. If the are
     strings, they must contain only a float and optionally one of 
@@ -446,7 +446,7 @@ def current_plot():
     """Returns the vector name of the current plot.
 
      plot_name specifies the plot whose vectors need
-      to be returned"""
+     to be returned"""
     plot_name = libngspice.ngSpice_CurPlot()
     return (plot_name.decode())
 
@@ -479,7 +479,7 @@ def get_vector_names(plot_name=None):
 
 
 def get_data(vector_arg, plot_arg=None):
-    """Enables the user to get the data availabe in a given vector
+    """Enables the user to get the data available in a given vector
 
     vector_arg denotes the vector name
     plot_agr denotes the plot name """
@@ -487,17 +487,17 @@ def get_data(vector_arg, plot_arg=None):
     if '.' in vector_arg:
         plot_name, vector_name = vector_arg.split('.')
         if vector_name not in get_vector_names(plot_name):
-            raise ValueError("Inapproriate Vector Name")
+            raise ValueError("Incorrect vector name")
     else:
         if vector_arg not in get_vector_names(plot_arg):
-            raise ValueError("Inapproriate vector name")
+            raise ValueError("Incorrect vector name")
         if plot_arg is not None:
             vector_arg = ".".join([plot_arg, vector_arg])
 
     info = libngspice.ngGet_Vec_Info(
         create_string_buffer(vector_arg.encode()))
     if info.contents.v_length <= 0:
-        raise ValueError("Inapproriate vector name")
+        raise ValueError("Incorrect vector name")
     else:
         if info.contents.v_flags & v_flags.VF_REAL != 0:
             data = np.squeeze(np.ctypeslib.as_array(
