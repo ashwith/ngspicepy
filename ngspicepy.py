@@ -19,28 +19,43 @@ send_stat_queue = Queue()
 is_simulating = False
 
 
-# enums for v_type
-SV_NOTYPE         = 0
-SV_TIME           = 1
-SV_FREQUENCY      = 2
-SV_VOLTAGE        = 3
-SV_CURRENT        = 4
-SV_OUTPUT_N_DENS  = 5
-SV_OUTPUT_NOISE   = 6
-SV_INPUT_N_DENS   = 7
-SV_INPUT_NOISE    = 8
-SV_POLE           = 9
-SV_ZERO           = 10
-SV_SPARAM         = 11
-SV_TEMP           = 12
-SV_RES            = 13
-SV_IMPEDANCE      = 14
-SV_ADMITTANCE     = 15
-SV_POWER          = 16
-SV_PHASE          = 17
-SV_DB             = 18
-SV_CAPACITANCE    = 19
-SV_CHARGE         = 20
+# enums for v_type.
+# See src/include/ngspice/sim.h in the ngspice source.
+class v_types:
+    SV_NOTYPE         = 0
+    SV_TIME           = 1
+    SV_FREQUENCY      = 2
+    SV_VOLTAGE        = 3
+    SV_CURRENT        = 4
+    SV_OUTPUT_N_DENS  = 5
+    SV_OUTPUT_NOISE   = 6
+    SV_INPUT_N_DENS   = 7
+    SV_INPUT_NOISE    = 8
+    SV_POLE           = 9
+    SV_ZERO           = 10
+    SV_SPARAM         = 11
+    SV_TEMP           = 12
+    SV_RES            = 13
+    SV_IMPEDANCE      = 14
+    SV_ADMITTANCE     = 15
+    SV_POWER          = 16
+    SV_PHASE          = 17
+    SV_DB             = 18
+    SV_CAPACITANCE    = 19
+    SV_CHARGE         = 20
+
+
+# enums for v_flags.
+# See src/include/ngspice/dvec.h in the ngspice source.
+class v_flags:
+    VF_REAL = (1 << 0)
+    VF_COMPLEX = (1 << 1)
+    VF_ACCUM = (1 << 2)
+    VF_PLOT = (1 << 3)
+    VF_PRINT = (1 << 4)
+    VF_MINGIVEN = (1 << 5)
+    VF_MAXGIVEN = (1 << 6)
+    VF_PERMANENT = (1 << 7)
 
 # ngspice scale factors
 scale_factors = OrderedDict()
@@ -223,7 +238,8 @@ def run_dc(*args, **kwargs):
     run_dc('v1 0 1 0.1')
     run_dc('v2 0 1 1m v2 0 1 0.3')
     run_dc('v1', 0, '1meg', '1k')
-    run_dc(src='v1', start=0, stop=1, step=0.1, src2=v2, start=0, step=0.3, stop=1)
+    run_dc(src='v1', start=0, stop=1, step=0.1,
+           src2=v2, start=0, step=0.3, stop=1)
     """
     cmd = OrderedDict()
     cmd['src'] = ""
@@ -295,8 +311,8 @@ def run_dc(*args, **kwargs):
         if any(arg in empty_args for arg in required_args):
             missing_args =\
                 empty_args.intersection(required_args)
-            raise ValueError('Arguments missing: ' + 
-                ' '.join(missing_args))
+            raise ValueError('Arguments missing: ' +
+                             ' '.join(missing_args))
         else:
             is_parametric = True
 
@@ -387,12 +403,11 @@ def run_tran(**kwargs):
     return tran_result
     
 
-
 def run_op():
     """The inclusion of this line in an input file directs
-     ngspice to determine the dc operating point of the 
+     ngspice to determine the dc operating point of the
      circuit """
-    op_result = send_command(op)
+    op_result = send_command('op')
     return op_result
 
 
@@ -415,10 +430,9 @@ def get_plot_names():
     return names_list
 
 
-
 def current_plot():
-    """Returns the vector name of the current plot. 
-     
+    """Returns the vector name of the current plot.
+
      plot_name specifies the plot whose vectors need
       to be returned"""
     plot_name = libngspice.ngSpice_CurPlot()
@@ -454,7 +468,7 @@ def get_vector_names(plot_name=None):
 
 def get_data(vector_arg, plot_arg=None):
     """Enables the user to get the data availabe in a given vector
-    
+
     vector_arg denotes the vector name
     plot_agr denotes the plot name """
 
@@ -473,12 +487,14 @@ def get_data(vector_arg, plot_arg=None):
     if info.contents.v_length <= 0:
         raise ValueError("Inapproriate vector name")
     else:
-        if info.contents.v_realdata:
+        if info.contents.v_flags & v_flags.VF_REAL != 0:
             data = np.squeeze(np.ctypeslib.as_array(
-                info.contents.v_realdata, shape=(1, info.contents.v_length)))
-        elif info.contents.v_compdata:
-           #  data = np.squeeze(np.ctypeslib.as_array(
-            #    info.contents.v_realdata, shape=(1, info.contents.v_length)))
+                info.contents.v_realdata,
+                shape=(1, info.contents.v_length)))
+        elif info.contents.v_flags & v_flags.VF_COMPLEX != 0:
+            data = np.squeeze(np.ctypeslib.as_array(
+                info.contents.v_compdata,
+                shape=(1, info.contents.v_length))).view('complex128')
         return data
 
 
@@ -489,7 +505,6 @@ def get_all_data(plot_name=None):
 
     vector_data = {}
     for vector_name in vector_names:
-        print(vector_name)
         vector_data[vector_name] = get_data(vector_name)
 
     return vector_data
