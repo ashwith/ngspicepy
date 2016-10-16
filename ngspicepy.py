@@ -322,26 +322,60 @@ def run_dc(*args, **kwargs):
     return send_command('dc ' + ' '.join(cmd.values()))
 
 
-def run_ac(*kwargs):
-   #nd, fstart, fstop = [(10,1,10) if 'dec' in kwargs]
-   #no, fstart, fstop = [(10,1,2) if 'oct' in kwargs]
-   #np, fstart, fstop = [(10,1,10) if 'lin' in kwargs]
+def run_ac(*args,**kwargs):
+     run_dc(*args, **kwargs):
+    """Run a AC simulation on ngspice
+
+    The argument(s) are either:
+    1. A single string containing dec/oct/lin(variation type),
+    nd (number of point per dec)/  no (number of points per octave)
+    np(number of points) followed by  fstart(frequency of start) 
+    and fstop(frequency of stop)
+ 
+    2. Format: dec/oct/lin nd/op/np fstart fstop
+ 
+    3. The arguments in 2. specified as keyword arguments.
+
+    dec/oct/lin are strings. nd/op/np, fstart and fstop can be 
+    strings or floats If they are strings,they must contain only a
+    float and optionally one of ngspice's scale factors and no spaces.
+
+    Examples:
+    dc('dec 10 1 10')
+    dc('dec 10 1k 100hz')
+    dc('dec', 10, '1k', '100hz')
+    dc(variation='dec', npoints=0, fstart=1, fstep=10)
+    """
+
    
    if fstart <= 0 or fstop <= 0:
     raise ValueError("Frequency cannot be negative or zero!!")
     
     ac_args = [ str(i) for i in kwargs]
     ac_command = ' '.join([ i for i in ac_args])
-    ac_result = send_command(ac_command)
+    ac_result = send_command('ac'+ac_command)
     return ac_result
     
 
-def run_tran(*kwargs):
-    tstep = "1n"
-    tstop = "10n"
-    tstart = 0
-    tmax = None
-    uic = None
+def run_tran(**kwargs):
+    """Run a TRAN simulation on ngspice
+
+    The argument(s) are either:
+    1. A single string contains tstep, tstop, tstart, tmax and uic
+    values. The value of tmax and uic are optional.
+    2. tstep tstop <tstart <tmax>> <uic>
+    3. The arguments in 2. specified as keyword arguments.
+
+    start, stop and step can be either strings or floats. If the are
+    strings, they must contain only a float and optionally one of 
+    ngspice's scale factors and no spaces.
+
+    Examples:
+    ac('1 10 0 11 ')
+    dc('1ns 10ns 0 11ns')
+    dc('1ns', 0, '10ns', '11ns')
+    dc(tstep=1, tstop=10, tstart=0, tmax=11)
+    """
     
     if tstep <= 0:
         raise ValueError(" Value of step cannot be zero")
@@ -350,7 +384,7 @@ def run_tran(*kwargs):
     
     tran_args = [ str(i) for i in kwargs]
     tran_command = ' '.join([ i for i in tran_args])
-    tran_result = send_command(tran_command)
+    tran_result = send_command('tran'+tran_command)
     return tran_result
     
 
