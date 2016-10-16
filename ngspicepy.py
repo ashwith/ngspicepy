@@ -356,12 +356,24 @@ def run_ac(*args,**kwargs):
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
+    
     run_ac('dec 10 1 10')
     run_ac('dec 10 1k 10meg')
     run_ac('dec', 10, '1k', '100k')
     run_ac(variation='dec', npoints=0, fstart=1, fstep=10)
     """
-
+    
+    cmd = OrderedDict()
+    cmd['variation'] = ""
+    cmd['npoints'] = ""
+    cmd['fstart'] = ""
+    cmd['fstop'] = ""
+    
+    is_parametric = False
+     
+    
+    if fstart <= 0 or fstop <= 0:
+    raise ValueError("Frequency cannot be negative or zero!!")
    
     if fstart <= 0 or fstop <= 0:
         raise ValueError("Frequency cannot be negative or zero!!")
@@ -386,10 +398,10 @@ def run_tran(**kwargs):
     ngspice's scale factors and no spaces.
 
     Examples:
-    ac('1 10 0 11 ')
-    dc('1ns 10ns 0 11ns')
-    dc('1ns', 0, '10ns', '11ns')
-    dc(tstep=1, tstop=10, tstart=0, tmax=11)
+    run_tran('1 10 0 11 ')
+    run_tran('1ns 10ns 0 11ns')
+    run_tran('1ns', 0, '10ns', '11ns')
+    run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
     
     if tstep <= 0:
