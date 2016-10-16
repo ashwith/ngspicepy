@@ -421,7 +421,7 @@ def run_ac(*args,**kwargs):
     
     
 
-def run_tran(**kwargs):
+def run_tran(*kargs,**kwargs):
     """Run a TRAN simulation on ngspice
 
     The argument(s) are either:
