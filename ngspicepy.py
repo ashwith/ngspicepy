@@ -368,23 +368,76 @@ def run_ac(*args,**kwargs):
     cmd['npoints'] = ""
     cmd['fstart'] = ""
     cmd['fstop'] = ""
-    
-    is_parametric = False
-     
-    
-    if fstart <= 0 or fstop <= 0:
-    raise ValueError("Frequency cannot be negative or zero!!")
-   
-    if fstart <= 0 or fstop <= 0:
-        raise ValueError("Frequency cannot be negative or zero!!")
-    
-    ac_args = [ str(i) for i in kwargs]
-    ac_command = ' '.join([ i for i in ac_args])
-    ac_result = send_command('ac'+ac_command)
-    return ac_result
+  
+    # Parse arguments:
+    #
+    # Case 1:
+    # -------
+    # If just one arg is given, assume that the entire string is a
+    # command. Separate it out and assign it to the cmd dictionary
+    # for error checking.
+    if len(args) == 1:
+        clean_arg = ' '.join(args[0].split())
+        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
+            cmd[key] = xstr(arg)
+    else:
+        # Case 2:
+        # -------
+        # If the simulation args are given as comma separated values,
+        # assign them to the dictionary for error checking.
+        for key, value in zip(cmd.keys(), args):
+            cmd[key] = xstr(value)
+
+    # Case 3:
+    # -------
+    # Finally parse the keyword args. Overwrite any args that
+    # were already given.
+        for key in kwargs:
+            if key not in cmd:
+                raise KeyError('invalid keyword argument')
+            else:
+                cmd[key] = xstr(kwargs[key])
+
+    # Check if the arguments were entered correctly:
+    #
+    # 1. Checks for first source
+    # --------------------------
+    # Check if any of the required arguments are empty.
+    empty_args = set([key for key in cmd if cmd[key] == ""])
+    required_args = set(['variations', 'npoints', 'fstart', 'fstop'])
+    if any(arg in empty_args for arg in required_args):
+        missing_args =\
+            empty_args.intersection(required_args)
+        raise ValueError('Arguments missing: ' +
+                         ' '.join(missing_args))
     
 
-def run_tran(**kwargs):
+    # Check if the arguments are correct, i.e., is fstart < fstop if
+    # fstep is positive, is fstart > fstop if step is negative, is
+    # fstart or fstop == 0?
+    start = to_num(cmd['npoints'])
+    stop = to_num(cmd['fstart'])
+    step = to_num(cmd['fstop'])
+    
+    if step is None:
+        fstep = 1
+    if fstart == 0:
+        raise ValueError("fstart cannot be zero")
+    if fstop == 0:
+        raise ValueError("fstart cannot be zero")   
+    if fstep > 0 and fstop < fstart:
+        raise ValueError("fstep size > 0 but fstop < fstart ")
+    if fstep < 0 and fstop > fstart:
+        raise ValueError ("fstep size < 0 but fstop > fstart")
+
+    
+
+    # Run the command
+    return send_command('ac ' + ' '.join(cmd.values())) 
+    
+    
+
+def run_tran(*kargs,**kwargs):
     """Run a TRAN simulation on ngspice
 
     The argument(s) are either:
@@ -404,17 +457,81 @@ def run_tran(**kwargs):
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
     
-    if tstep <= 0:
-        raise ValueError(" Value of step cannot be zero")
-    if tstart > tstop:
-        raise ValueError("tstart cannot be greater that tstop")
+        
+    cmd = OrderedDict()
+    cmd['tstep'] = ""
+    cmd['tstop'] = ""
+    cmd['tstart'] = ""
+    cmd['tmax'] = ""
+    cmd['uic'] = ""  #need to check for this
     
-    tran_args = [ str(i) for i in kwargs]
-    tran_command = ' '.join([ i for i in tran_args])
-    tran_result = send_command('tran'+tran_command)
-    return tran_result
-    
+  
+    # Parse arguments:
+    #
+    # Case 1:
+    # -------
+    # If just one arg is given, assume that the entire string is a
+    # command. Separate it out and assign it to the cmd dictionary
+    # for error checking.
+    if len(args) == 1:
+        clean_arg = ' '.join(args[0].split())
+        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
+            cmd[key] = xstr(arg)
+    else:
+        # Case 2:
+        # -------
+        # If the simulation args are given as comma separated values,
+        # assign them to the dictionary for error checking.
+        for key, value in zip(cmd.keys(), args):
+            cmd[key] = xstr(value)
 
+
+    # Case 3:
+    # -------
+    # Finally parse the keyword args. Overwrite any args that
+    # were already given.
+        for key in kwargs:
+            if key not in cmd:
+                raise KeyError('invalid keyword argument')
+            else:
+                cmd[key] = xstr(kwargs[key])
+
+    # Check if the arguments were entered correctly:
+    #
+    # 1. Checks for first source
+    # --------------------------
+    # Check if any of the required arguments are empty.
+    empty_args = set([key for key in cmd if cmd[key] == ""])
+    required_args = set(['tstep', 'tstop', 'tstart'])
+    if any(arg in empty_args for arg in required_args):
+        missing_args =\
+            empty_args.intersection(required_args)
+        raise ValueError('Arguments missing: ' +
+                         ' '.join(missing_args))
+    
+    
+    # Check if the arguments are correct, i.e., is tstop < tstart if
+    # tstep is zero 
+    start = to_num(cmd['tstep'])
+    stop = to_num(cmd['tstart'])
+    step = to_num(cmd['tstop'])
+    
+    if tstep is None:
+        tstep = 1
+    if tstep == 0:
+        raise ValueError("tstep cannot be zero")
+    
+    if tstep <0 :
+        raise ValueError("tstep cannot be negative") 
+    
+    if tstop < tstart:
+        raise ValueError("tstop cannot be less than tstart")  
+ 
+ 
+    # Run the command
+    return send_command('tran ' + ' '.join(cmd.values())) 
+    
+   
 def run_op():
     """The inclusion of this line in an input file directs
      ngspice to determine the dc operating point of the
