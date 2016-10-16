@@ -286,9 +286,13 @@ def get_data(vector_arg, plot_arg=None):
     if info.contents.v_length <= 0:
         raise ValueError("Inapproriate vector name")
     else:
-        data = np.squeeze(np.ctypeslib.as_array(
-            info.contents.v_realdata, shape=(1, info.contents.v_length)))
-    return data
+        if info.contents.v_realdata:
+            data = np.squeeze(np.ctypeslib.as_array(
+                info.contents.v_realdata, shape=(1, info.contents.v_length)))
+        elif info.contents.v_compdata:
+             data = np.squeeze(np.ctypeslib.as_array(
+                info.contents.v_realdata, shape=(1, info.contents.v_length)))
+        return data
 
 
 def get_all_data(plot_name=None):
