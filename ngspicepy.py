@@ -1,6 +1,7 @@
 import string
 
 
+from collections import OrderedDict
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
     c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
     POINTER, Structure
@@ -40,6 +41,18 @@ SV_PHASE          = 17
 SV_DB             = 18
 SV_CAPACITANCE    = 19
 SV_CHARGE         = 20
+
+# ngspice scale factors
+scale_factors = OrderedDict()
+scale_factors['meg'] = 'e6'
+scale_factors['t'] = 'e12'
+scale_factors['g'] = 'e9'
+scale_factors['k'] = 'e3'
+scale_factors['m'] = 'e-3'
+scale_factors['u'] = 'e-6'
+scale_factors['n'] = 'e-9'
+scale_factors['p'] = 'e-12'
+scale_factors['f'] = 'e-15'
 
 
 # C structs that are required by the shared library
@@ -139,6 +152,40 @@ libngspice.ngSpice_AllPlots.restype = POINTER(c_char_p)
 libngspice.ngSpice_AllVecs.restype  = POINTER(c_char_p)
 
 
+# Utility functions
+def xstr(string):
+    if string is None:
+        return ''
+    else:
+        return str(string)
+
+
+def to_num(ng_number):
+    num_text = ng_number.lower()
+    for scale_factor in scale_factors:
+        if scale_factor in num_text:
+            num_text = num_text.replace(scale_factor,
+                                        scale_factors[scale_factor])
+            break
+    try:
+        num = float(num_text)
+        return num
+    except ValueError:
+        raise ValueError('Invalid ngspice number: ' + ng_number)
+
+
+def check_sim_param(start, stop, step=None):
+    if step is None:
+        step = 1
+    if step == 0:
+        return (False, "step size is zero")
+    if step > 0 and stop < start:
+        return (False, "step size > 0 but stop < start ")
+    if step < 0 and stop > start:
+        return (False, "step size < 0 but stop > start")
+    return (True, "All good")
+
+
 # User functions
 def send_command(command):
     """Send a command to ngspice.
@@ -159,26 +206,120 @@ def send_command(command):
     return output
 
 
-def run_dc(**kwargs):
-    vstart = 0
-    vstop = 10
-    vincr = .1
-    src2 = None
-    start2 = None
-    stop2 = None
-    incr2 = None
+def run_dc(*args, **kwargs):
+    """Run a DC simulation on ngspice
 
-    if vincr == 0:
-        raise ValueError("Value of vincr cannt be zero")
-    if vincr > 0 and vstart > vstop:
-        raise ValueError("Inappropriate values of vincr, vstart or vstop")
-    if vincr < 0 and vstart < vstop:
-        raise ValueError("Inappropriate values of vincr, vstart or vstop")
+    The argument(s) are either:
+    1. A single string containing the source(s) followed by their
+    start, stop and step values.
+    2. src, start, stop, step[, src2, start, stop, step]
+    3. The arguments in 2. specified as keyword arguments.
 
-    dc_args = [str(i) for i in kwargs]
-    dc_command = ' '.join([i for i in dc_args])
-    dc_result = send_command(dc_command)
-    return dc_result
+    src and src2 must be strings. start, stop and step can be either
+    strings or floats. If they are strings, they must contain only a
+    float and optionally one of ngspice's scale factors and no spaces.
+
+    Examples:
+    dc('v1 0 1 0.1')
+    dc('v2 0 1 1m v2 0 1 0.3')
+    dc('v1', 0, '1meg', '1k')
+    dc(src='v1', start=0, stop=1, step=0.1, src2=v2, start=0, step=0.3, stop=1)
+    """
+    cmd = OrderedDict()
+    cmd['src'] = ""
+    cmd['start'] = ""
+    cmd['stop'] = ""
+    cmd['step'] = ""
+    cmd['src2'] = ""
+    cmd['start2'] = ""
+    cmd['stop2'] = ""
+    cmd['step2'] = ""
+
+    is_parametric = False
+
+    # Parse arguments:
+    #
+    # Case 1:
+    # -------
+    # If just one arg is given, assume that the entire string is a
+    # command. Separate it out and assign it to the cmd dictionary
+    # for error checking.
+    if len(args) == 1:
+        clean_arg = ' '.join(args[0].split())
+        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
+            cmd[key] = arg
+    else:
+        # Case 2:
+        # -------
+        # If the simulation args are given as comma separated values,
+        # assign them to the dictionary for error checking.
+        for key, value in zip(cmd.keys(), args):
+            cmd[key] = xstr(value)
+
+    # Case 3:
+    # -------
+    # Finally parse the keyword args. Overwrite any args that
+    # were already given.
+        for key in kwargs:
+            if key not in cmd:
+                raise KeyError('invalid keyword argument')
+            else:
+                cmd[key] = xstr(kwargs[key])
+
+    # Check if the arguments were entered correctly:
+    #
+    # 1. Checks for first source
+    # --------------------------
+    # Check if any of the required arguments are empty.
+    empty_args = set([key for key in cmd if cmd[key] == ""])
+    required_args = set(['src', 'start', 'stop', 'step'])
+    if any(arg in empty_args for arg in required_args):
+        missing_args =\
+            empty_args.intersection(required_args)
+        raise ValueError('Arguments missing: ' +
+                         ' '.join(missing_args))
+
+    # 2. Checks for the second source
+    # -------------------------------
+    #
+    # 2a. Arguments of second source given, check if source is given.
+    required_args = set(['start2', 'stop2', 'step2'])
+    if any(arg not in empty_args for arg in required_args) and\
+            cmd['src2'] == "":
+        raise ValueError('Second source not specified.')
+
+    # 2b. Second source is specifie, check if its required arguments
+    # are empty.
+    if cmd['src2'] != "":
+        required_args = set(['start2', 'stop2', 'step2'])
+        if any(arg in empty_args for arg in required_args):
+            missing_args =\
+                empty_args.intersection(required_args)
+            raise ValueError('Arguments missing: ' + '\
+                '.join(missing_args))
+        else:
+            is_parametric = True
+
+    # Check if the arguments are correct, i.e., is start < stop if
+    # step is positive, is start > stop if step is negative, is
+    # start != step?
+    start = to_num(cmd['start'])
+    stop = to_num(cmd['stop'])
+    step = to_num(cmd['step'])
+    is_good, msg = check_sim_param(start, stop, step)
+    if not is_good:
+        raise ValueError(msg)
+    # Do the same for the second source if it exists.
+    if is_parametric:
+        start = to_num(cmd['start2'])
+        stop = to_num(cmd['stop2'])
+        step = to_num(cmd['step2'])
+        is_good, msg = check_sim_param(start, stop, step)
+        if not is_good:
+            raise ValueError(msg)
+
+    # Run the command
+    return send_command('dc ' + ' '.join(cmd.values()))
 
 
 def run_ac(*kwargs):
@@ -338,6 +479,7 @@ def load_netlist(netlist):
     The function does not check if the netlist is valid. An invalid
     netlist may cause ngspice to crash.
     """
+
     if type(netlist) == str:
         if isfile(netlist):
             send_command('source ' + netlist)
