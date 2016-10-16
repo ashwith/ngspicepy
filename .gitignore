@@ -91,3 +91,6 @@ ENV/
 
 # vim swap files
 *.*.swp
+
+# gedit temp files
+*~
