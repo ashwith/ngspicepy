@@ -617,13 +617,12 @@ def get_data(vector_arg, plot_arg=None):
         raise ValueError("Incorrect vector name")
     else:
         if info.contents.v_flags & v_flags.VF_REAL != 0:
-            data = np.squeeze(np.ctypeslib.as_array(
-                info.contents.v_realdata,
-                shape=(1, info.contents.v_length)))
+            data = np.ctypeslib.as_array(info.contents.v_realdata,
+                                         shape=(info.contents.v_length,))
         elif info.contents.v_flags & v_flags.VF_COMPLEX != 0:
-            data = np.squeeze(np.ctypeslib.as_array(
+            data = np.ctypeslib.as_array(
                 info.contents.v_compdata,
-                shape=(1, info.contents.v_length))).view('complex128')
+                shape=(info.contents.v_length,)).view('complex128')
         return data
 
 
