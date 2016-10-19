@@ -56,3 +56,22 @@ class TestGetData:
 
         with pytest.raises(ValueError):
             ng.get_data('dc1.v-swoop')
+
+
+class TestCurrentPlot:
+
+    def test_current_plot(self):
+        val = ng.current_plot()
+        assert isinstance(val, str)
+
+
+class TestLoadNetlist:
+
+    def test_filename(self):
+        ng.load_netlist('./tests/netlists/dc_ac_check.net')
+
+    def test_str_lst(self):
+        pass
+
+    def test_str(self):
+        pass
