@@ -338,37 +338,37 @@ def run_dc(*args, **kwargs):
     return send_command('dc ' + ' '.join(cmd.values()))
 
 
-def run_ac(*args,**kwargs):
+def run_ac(*args, **kwargs):
     """Run a AC simulation on ngspice
 
     The argument(s) are either:
     1. A single string containing dec/oct/lin(variation type),
     nd (number of point per dec)/  no (number of points per octave)
-    np(number of points) followed by  fstart(frequency of start) 
+    np(number of points) followed by  fstart(frequency of start)
     and fstop(frequency of stop)
- 
+
     2. Format: dec/oct/lin nd/op/np fstart fstop
- 
+
     3. The arguments in 2. Specified as keyword arguments.
 
-    dec/oct/lin are strings. nd/op/np, fstart and fstop can be 
+    dec/oct/lin are strings. nd/op/np, fstart and fstop can be
     strings or floats If they are strings,they must contain only a
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
-    
+
     run_ac('dec 10 1 10')
     run_ac('dec 10 1k 10meg')
     run_ac('dec', 10, '1k', '100k')
     run_ac(variation='dec', npoints=0, fstart=1, fstep=10)
     """
-    
+
     cmd = OrderedDict()
     cmd['variation'] = ""
     cmd['npoints'] = ""
     cmd['fstart'] = ""
     cmd['fstop'] = ""
-  
+
     # Parse arguments:
     #
     # Case 1:
@@ -410,34 +410,30 @@ def run_ac(*args,**kwargs):
             empty_args.intersection(required_args)
         raise ValueError('Arguments missing: ' +
                          ' '.join(missing_args))
-    
 
     # Check if the arguments are correct, i.e., is fstart < fstop if
     # fstep is positive, is fstart > fstop if step is negative, is
     # fstart or fstop == 0?
-    start = to_num(cmd['npoints'])
-    stop = to_num(cmd['fstart'])
+    fstart = to_num(cmd['npoints'])
+    fstop = to_num(cmd['fstart'])
     step = to_num(cmd['fstop'])
-    
+
     if step is None:
         fstep = 1
     if fstart == 0:
         raise ValueError("fstart cannot be zero")
     if fstop == 0:
-        raise ValueError("fstart cannot be zero")   
+        raise ValueError("fstart cannot be zero")
     if fstep > 0 and fstop < fstart:
         raise ValueError("fstep size > 0 but fstop < fstart ")
     if fstep < 0 and fstop > fstart:
-        raise ValueError ("fstep size < 0 but fstop > fstart")
-
-    
+        raise ValueError("fstep size < 0 but fstop > fstart")
 
     # Run the command
-    return send_command('ac ' + ' '.join(cmd.values())) 
-    
-    
+    return send_command('ac ' + ' '.join(cmd.values()))
 
-def run_tran(*kargs,**kwargs):
+
+def run_tran(*args, **kwargs):
     """Run a TRAN simulation on ngspice
 
     The argument(s) are either:
@@ -447,7 +443,7 @@ def run_tran(*kargs,**kwargs):
     3. The arguments in 2. Specified as keyword arguments.
 
     start, stop and step can be either strings or floats. If the are
-    strings, they must contain only a float and optionally one of 
+    strings, they must contain only a float and optionally one of
     ngspice's scale factors and no spaces.
 
     Examples:
@@ -456,16 +452,14 @@ def run_tran(*kargs,**kwargs):
     run_tran('1ns', 0, '10ns', '11ns')
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
-    
-        
+
     cmd = OrderedDict()
     cmd['tstep'] = ""
     cmd['tstop'] = ""
     cmd['tstart'] = ""
     cmd['tmax'] = ""
-    cmd['uic'] = ""  #need to check for this
-    
-  
+    cmd['uic'] = ""  # need to check for this
+
     # Parse arguments:
     #
     # Case 1:
@@ -484,7 +478,6 @@ def run_tran(*kargs,**kwargs):
         # assign them to the dictionary for error checking.
         for key, value in zip(cmd.keys(), args):
             cmd[key] = xstr(value)
-
 
     # Case 3:
     # -------
@@ -508,30 +501,28 @@ def run_tran(*kargs,**kwargs):
             empty_args.intersection(required_args)
         raise ValueError('Arguments missing: ' +
                          ' '.join(missing_args))
-    
-    
+
     # Check if the arguments are correct, i.e., is tstop < tstart if
-    # tstep is zero 
-    start = to_num(cmd['tstep'])
-    stop = to_num(cmd['tstart'])
-    step = to_num(cmd['tstop'])
-    
+    # tstep is zero
+    tstart = to_num(cmd['tstep'])
+    tstop = to_num(cmd['tstart'])
+    tstep = to_num(cmd['tstop'])
+
     if tstep is None:
         tstep = 1
     if tstep == 0:
         raise ValueError("tstep cannot be zero")
-    
-    if tstep <0 :
-        raise ValueError("tstep cannot be negative") 
-    
+
+    if tstep < 0:
+        raise ValueError("tstep cannot be negative")
+
     if tstop < tstart:
-        raise ValueError("tstop cannot be less than tstart")  
- 
- 
+        raise ValueError("tstop cannot be less than tstart")
+
     # Run the command
-    return send_command('tran ' + ' '.join(cmd.values())) 
-    
-   
+    return send_command('tran ' + ' '.join(cmd.values()))
+
+
 def run_op():
     """The inclusion of this line in an input file directs
      ngspice to determine the dc operating point of the
@@ -647,13 +638,13 @@ def set_options(*args, **kwargs):
     set_options('trtol=1')
     """
     for option in args:
-        send_command('option ' + str(option))
+        return send_command('option ' + str(option))
     for option in kwargs:
         if kwargs[option] is None:
-            send_command('option ' + option)
+            return send_command('option ' + option)
         else:
-            send_command('option ' + option + '=' +
-                         str(kwargs[option]))
+            return send_command('option ' + option + '=' +
+                                str(kwargs[option]))
 
 
 def load_netlist(netlist):
@@ -671,10 +662,11 @@ def load_netlist(netlist):
 
     if type(netlist) == str:
         if isfile(netlist):
-            send_command('source ' + netlist)
-            return
-        else:
+            return send_command('source ' + netlist)
+        elif '\n' in netlist:
             netlist_list = netlist.split('\n')
+        else:
+            raise ValueError('Invalid netlist file or string')
     elif type(netlist) == list:
         netlist_list = netlist
     else:
@@ -689,3 +681,9 @@ def load_netlist(netlist):
     netlist_str[len(netlist_list)] = None
 
     libngspice.ngSpice_Circ(netlist_str)
+
+    output = []
+
+    while not send_char_queue.empty():
+        output.append(send_char_queue.get_nowait())
+    return output
