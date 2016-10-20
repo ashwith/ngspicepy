@@ -25,7 +25,7 @@ make
 sudo make install
 ```
 
-If all goes well, the shared library should be in /usr/local/lib/ngspice. If not, please check the installation instructions that come with ngspice (see file INSTALL).
+If all goes well, the shared library should be in /usr/local/lib/. If not, please check the installation instructions that come with ngspice (see file INSTALL).
 
 Using ngspicepy
 ---------------
