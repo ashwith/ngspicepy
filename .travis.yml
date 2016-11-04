@@ -1,0 +1,17 @@
+language: python
+
+python:
+  - 3.5
+
+# command to install dependencies
+install: 
+  - pip install -r requirements.txt
+  - pip install coverage
+  - pip install python-coveralls
+# command to run tests
+script: 
+    - pytest --cov=ngspicepy
+
+after_success:
+    - coveralls
+
