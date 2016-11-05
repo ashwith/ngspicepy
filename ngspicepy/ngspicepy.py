@@ -16,13 +16,7 @@ libpath = "/usr/local/lib/libngspice.so.0"
 if os.path.isfile(libpath):
     libngspice = cdll.LoadLibrary(libpath)
 else:
-    libngspice = cdll.LoadLibrary(os.path.dirname(os.path.abspath(__file__)) +
-                                  os.path.sep +
-                                  os.path.pardir +
-                                  os.path.sep +
-                                  'lib' +
-                                  os.path.sep +
-                                  'libngspice.so.0')
+    raise SystemError('Shared library libngspice.so not found in ' + libpath)
 
 send_char_queue = Queue()
 send_stat_queue = Queue()
