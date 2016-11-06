@@ -555,10 +555,8 @@ def get_plot_names():
 
 
 def current_plot():
-    """Returns the vector name of the current plot.
+    """Returns the name of the current plot."""
 
-     plot_name specifies the plot whose vectors need
-     to be returned"""
     plot_name = libngspice.ngSpice_CurPlot()
     return (plot_name.decode())
 
