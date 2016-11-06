@@ -37,13 +37,6 @@ class TestSendCommand:
         val = ng.send_command(' dc v1 0 1 .1 ')
         assert isinstance(val, list)
 
-
-class TestRunDc:
-    def test_run_dc(self):
-        val = ng.run_dc('v1 0 1 .1 v2 0 1 .1 ')
-        assert isinstance(val, list)
-
-
 class TestGetData:
 
     def test_real(self):
@@ -131,7 +124,7 @@ class TestGetVectorNames:
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         val = ng. get_vector_names('dc1')
-        assert val == ['v1#branch', 'V(2)', 'V(1)', 'v-sweep']
+        assert val == ['v1#branch', 'v2#branch',  'V(2)', 'V(1)', 'v-sweep']
 
 
 class TestLoadNetlist:
@@ -156,3 +149,81 @@ class TestLoadNetlist:
     def test_invalid_filename(self):
         with pytest.raises(ValueError):
             ng.load_netlist('dummy.net')
+
+class TestRunDC:
+    def test_run_dc(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        val = ng.run_dc('v1 0 1 .1 v2 0 1 .1 ')
+        assert isinstance(val, list)
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeStr(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 0.1')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1', '0', 1, '0.1')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeKWArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc(src='v1', stop='1', start=0, step='0.1')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeTwoSrc(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 0.1 v2 0 2 0.2')
+
+class TestRunAC:
+    def test_run_ac(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        val = ng.run_ac('dec 10 1k 1Meg')
+        assert isinstance(val, list)
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeStr(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_ac('dec 10 1k 1Meg')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_ac(variation='dec', fstart=10, fstop='100', npoints=100)
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeKWArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_ac('dec 10 1 1Meg')
+        assert mock_send_command.called
+
+
+class TestRunTran:
+    def test_run_tran(self):
+        ng.load_netlist(netlists_path + 'tran_check.net')
+        val = ng.run_tran('1u 1m')
+        assert isinstance(val, list)
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeStr(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'tran_check.net')
+        val = ng.run_tran('1u 1m 10u')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'tran_check.net')
+        val = ng.run_tran('1u', '1m', '10u')
+        assert mock_send_command.called
+
+    @mock.patch('ngspicepy.libngspice.ngSpice_Command')
+    def test_argtypeKWArgs(self, mock_send_command):
+        ng.load_netlist(netlists_path + 'tran_check.net')
+        val = ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
+        assert mock_send_command.called
