@@ -364,7 +364,7 @@ def run_ac(*args, **kwargs):
     run_ac('dec 10 1 10')
     run_ac('dec 10 1k 10meg')
     run_ac('dec', 10, '1k', '100k')
-    run_ac(variation='dec', npoints=0, fstart=1, fstep=10)
+    run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
 
     cmd = OrderedDict()
@@ -398,7 +398,7 @@ def run_ac(*args, **kwargs):
     # were already given.
         for key in kwargs:
             if key not in cmd:
-                raise KeyError('invalid keyword argument')
+                raise KeyError('invalid keyword argument:' + key)
             else:
                 cmd[key] = xstr(kwargs[key])
 
@@ -418,20 +418,20 @@ def run_ac(*args, **kwargs):
     # Check if the arguments are correct, i.e., is fstart < fstop if
     # fstep is positive, is fstart > fstop if step is negative, is
     # fstart or fstop == 0?
-    fstart = to_num(cmd['npoints'])
-    fstop = to_num(cmd['fstart'])
-    step = to_num(cmd['fstop'])
+    fstep = to_num(cmd['npoints'])
+    fstart = to_num(cmd['fstart'])
+    fstop = to_num(cmd['fstop'])
 
-    if step is None:
+    if fstep is None:
         fstep = 1
     if fstart == 0:
         raise ValueError("fstart cannot be zero")
     if fstop == 0:
         raise ValueError("fstart cannot be zero")
-    if fstep > 0 and fstop < fstart:
+    if fstop < fstart:
         raise ValueError("fstep size > 0 but fstop < fstart ")
-    if fstep < 0 and fstop > fstart:
-        raise ValueError("fstep size < 0 but fstop > fstart")
+    if fstep < 0:
+        raise ValueError("npoints must be a positive integer")
 
     # Run the command
     return send_command('ac ' + ' '.join(cmd.values()))
@@ -499,7 +499,7 @@ def run_tran(*args, **kwargs):
     # --------------------------
     # Check if any of the required arguments are empty.
     empty_args = set([key for key in cmd if cmd[key] == ""])
-    required_args = set(['tstep', 'tstop', 'tstart'])
+    required_args = set(['tstep', 'tstop'])
     if any(arg in empty_args for arg in required_args):
         missing_args =\
             empty_args.intersection(required_args)
@@ -508,9 +508,13 @@ def run_tran(*args, **kwargs):
 
     # Check if the arguments are correct, i.e., is tstop < tstart if
     # tstep is zero
-    tstart = to_num(cmd['tstep'])
-    tstop = to_num(cmd['tstart'])
-    tstep = to_num(cmd['tstop'])
+    if cmd["tstart"] != "":
+        tstart = to_num(cmd['tstep'])
+    else:
+        tstart = 0
+
+    tstop = to_num(cmd['tstop'])
+    tstep = to_num(cmd['tstep'])
 
     if tstep is None:
         tstep = 1
