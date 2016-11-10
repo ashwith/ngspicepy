@@ -1,4 +1,4 @@
-import string
+lsimport string
 
 
 from collections import OrderedDict
@@ -161,7 +161,6 @@ libngspice.ngSpice_Command.argtypes = [c_char_p]
 libngspice.ngGet_Vec_Info.argtypes  = [c_char_p]
 libngspice.ngSpice_Circ.argtypes    = [POINTER(c_char_p)]
 libngspice.ngSpice_AllVecs.argtypes = [c_char_p]
-
 libngspice.ngSpice_Command.restype  = c_int
 libngspice.ngSpice_running.restype  = c_int
 libngspice.ngGet_Vec_Info.restype   = POINTER(vector_info)
@@ -205,6 +204,134 @@ def check_sim_param(start, stop, step=None):
     return (True, "All good")
 
 
+def __parse__(cmd, *args, **kwargs):
+    """ Performs the parsing function for the ac,dc and tran cases.
+
+    This function per
+
+    """
+    cmd_dc = OrderedDict()
+    cmd_dc['src'] = ""
+    cmd_dc['start'] = ""
+    cmd_dc['stop'] = ""
+    cmd_dc['step'] = ""
+    cmd_dc['src2'] = ""
+    cmd_dc['start2'] = ""
+    cmd_dc['stop2'] = ""
+    cmd_dc['step2'] = ""
+    pdc_keys=['start', 'stop', 'step']
+    
+    cmd_ac = OrderedDict()
+    cmd_ac['variation'] = ""
+    cmd_ac['npoints'] = ""
+    cmd_ac['fstart'] = ""
+    cmd_ac['fstop'] = ""
+    pac_keys = ['fstart', 'fstop', 'npoints']
+    
+    cmd_tran = OrderedDict()
+    cmd_tran['tstep'] = ""
+    cmd_tran['tstop'] = ""
+    cmd_tran['tstart'] = ""
+    cmd_tran['tmax'] = ""
+    ptran_keys=['tstart', 'tstop', 'tstep']
+
+    if ac in args:
+        cmd = cmd_ac
+        p_keys = pac_keys
+    elif dc in args:
+        cmd = cmd_dc
+        p_keys = pdc_keys
+    elif tran in args:
+        cmd = cmd_tran
+        p_keys = ptran_keys
+
+  # Parse arguments:
+    #
+    # Case 1:
+    # -------
+    # If just one arg is given, assume that the entire string is a
+    # command. Separate it out and assign it to the cmd dictionary
+    # for error checking.
+    if len(args) == 1:
+        clean_arg = ' '.join(args[0].split())
+        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
+            cmd[key] = xstr(arg)
+    else:
+        # Case 2:
+        # -------
+        # If the simulation args are given as comma separated values,
+        # assign them to the dictionary for error checking.
+        for key, value in zip(cmd.keys(), args):
+            cmd[key] = xstr(value)
+
+    # Case 3:
+    # -------
+    # Finally parse the keyword args. Overwrite any args that
+    # were already given.
+        for key in kwargs:
+            if key not in cmd:
+                raise KeyError('invalid keyword argument')
+            else:
+                cmd[key] = xstr(kwargs[key])
+
+    # Check if the arguments were entered correctly:
+    #
+    # 1. Checks for first source
+    # --------------------------
+    # Check if any of the required arguments are empty.
+    empty_args = set([key for key in cmd if cmd[key] == ""])
+    keys=list(cmd.keys())
+    required_args = set([keys[0], keys[1], keys[2], keys[3]])
+    if any(arg in empty_args for arg in required_args):
+        missing_args =\
+            empty_args.intersection(required_args)
+        raise ValueError('Arguments missing: ' +
+                         ' '.join(missing_args))
+
+    # 2. Checks for the second source
+    # -------------------------------
+    #
+    # 2a. Arguments of second source given, check if source is given.
+    if dc in args:
+        required_args = set([key[5], key[6], key[7]])
+        if any(arg not in empty_args for arg in required_args) and\
+                cmd['src2'] == "":
+            raise ValueError('Second source not specified.')
+
+    # 2b. Second source is specified, check if its required arguments
+    # are empty.
+        if cmd['src2'] != "":
+            required_args = set([[key[5], key[6], key[7]])
+            if any(arg in empty_args for arg in required_args):
+                missing_args =empty_args.intersection(required_args)
+                raise ValueError('Arguments missing: ' +
+                    ' '.join(missing_args))
+            else:
+                is_parametric = True
+
+    # Check if the arguments are correct, i.e., is start < stop if
+    # step is positive, is start > stop if step is negative, is
+    # start != step?
+    start = to_num(cmd[p_keys[0]])
+    stop = to_num(cmd[p_keys[1]])
+    step = to_num(cmd[p_keys[2]])
+    is_good, msg = check_sim_param(start, stop, step)
+    if not is_good:
+        raise ValueError('Wrong values')
+    # Do the same for the second source if it exists.
+
+    if dc in args:
+        if is_parametric:
+            start = to_num(cmd['start2'])
+            stop = to_num(cmd['stop2'])
+            step = to_num(cmd['step2'])
+            is_good, msg = check_sim_param(start, stop, step)
+            if not is_good:
+                raise ValueError('Wrong Values')
+
+    return list(cmd.values())
+
+
 # User functions
 def send_command(command):
     """Send a command to ngspice.
@@ -245,102 +372,9 @@ def run_dc(*args, **kwargs):
     run_dc(src='v1', start=0, stop=1, step=0.1,
            src2=v2, start=0, step=0.3, stop=1)
     """
-    cmd = OrderedDict()
-    cmd['src'] = ""
-    cmd['start'] = ""
-    cmd['stop'] = ""
-    cmd['step'] = ""
-    cmd['src2'] = ""
-    cmd['start2'] = ""
-    cmd['stop2'] = ""
-    cmd['step2'] = ""
-
-    is_parametric = False
-
-    # Parse arguments:
-    #
-    # Case 1:
-    # -------
-    # If just one arg is given, assume that the entire string is a
-    # command. Separate it out and assign it to the cmd dictionary
-    # for error checking.
-    if len(args) == 1:
-        clean_arg = ' '.join(args[0].split())
-        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
-            cmd[key] = xstr(arg)
-    else:
-        # Case 2:
-        # -------
-        # If the simulation args are given as comma separated values,
-        # assign them to the dictionary for error checking.
-        for key, value in zip(cmd.keys(), args):
-            cmd[key] = xstr(value)
-
-    # Case 3:
-    # -------
-    # Finally parse the keyword args. Overwrite any args that
-    # were already given.
-        for key in kwargs:
-            if key not in cmd:
-                raise KeyError('invalid keyword argument')
-            else:
-                cmd[key] = xstr(kwargs[key])
-
-    # Check if the arguments were entered correctly:
-    #
-    # 1. Checks for first source
-    # --------------------------
-    # Check if any of the required arguments are empty.
-    empty_args = set([key for key in cmd if cmd[key] == ""])
-    required_args = set(['src', 'start', 'stop', 'step'])
-    if any(arg in empty_args for arg in required_args):
-        missing_args =\
-            empty_args.intersection(required_args)
-        raise ValueError('Arguments missing: ' +
-                         ' '.join(missing_args))
-
-    # 2. Checks for the second source
-    # -------------------------------
-    #
-    # 2a. Arguments of second source given, check if source is given.
-    required_args = set(['start2', 'stop2', 'step2'])
-    if any(arg not in empty_args for arg in required_args) and\
-            cmd['src2'] == "":
-        raise ValueError('Second source not specified.')
-
-    # 2b. Second source is specified, check if its required arguments
-    # are empty.
-    if cmd['src2'] != "":
-        required_args = set(['start2', 'stop2', 'step2'])
-        if any(arg in empty_args for arg in required_args):
-            missing_args =\
-                empty_args.intersection(required_args)
-            raise ValueError('Arguments missing: ' +
-                             ' '.join(missing_args))
-        else:
-            is_parametric = True
-
-    # Check if the arguments are correct, i.e., is start < stop if
-    # step is positive, is start > stop if step is negative, is
-    # start != step?
-    start = to_num(cmd['start'])
-    stop = to_num(cmd['stop'])
-    step = to_num(cmd['step'])
-    is_good, msg = check_sim_param(start, stop, step)
-    if not is_good:
-        raise ValueError(msg)
-    # Do the same for the second source if it exists.
-    if is_parametric:
-        start = to_num(cmd['start2'])
-        stop = to_num(cmd['stop2'])
-        step = to_num(cmd['step2'])
-        is_good, msg = check_sim_param(start, stop, step)
-        if not is_good:
-            raise ValueError(msg)
-
-    # Run the command
-    return send_command('dc ' + ' '.join(cmd.values()))
-
+    
+    parsed_args = __parse__('dc', args, kwargs)
+    send_command('dc'+' '.join(parsed_args))
 
 def run_ac(*args, **kwargs):
     """Run a AC simulation on ngspice
@@ -367,74 +401,8 @@ def run_ac(*args, **kwargs):
     run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
 
-    cmd = OrderedDict()
-    cmd['variation'] = ""
-    cmd['npoints'] = ""
-    cmd['fstart'] = ""
-    cmd['fstop'] = ""
-
-    # Parse arguments:
-    #
-    # Case 1:
-    # -------
-    # If just one arg is given, assume that the entire string is a
-    # command. Separate it out and assign it to the cmd dictionary
-    # for error checking.
-    if len(args) == 1:
-        clean_arg = ' '.join(args[0].split())
-        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
-            cmd[key] = xstr(arg)
-    else:
-        # Case 2:
-        # -------
-        # If the simulation args are given as comma separated values,
-        # assign them to the dictionary for error checking.
-        for key, value in zip(cmd.keys(), args):
-            cmd[key] = xstr(value)
-
-    # Case 3:
-    # -------
-    # Finally parse the keyword args. Overwrite any args that
-    # were already given.
-        for key in kwargs:
-            if key not in cmd:
-                raise KeyError('invalid keyword argument:' + key)
-            else:
-                cmd[key] = xstr(kwargs[key])
-
-    # Check if the arguments were entered correctly:
-    #
-    # 1. Checks for first source
-    # --------------------------
-    # Check if any of the required arguments are empty.
-    empty_args = set([key for key in cmd if cmd[key] == ""])
-    required_args = set(['variations', 'npoints', 'fstart', 'fstop'])
-    if any(arg in empty_args for arg in required_args):
-        missing_args =\
-            empty_args.intersection(required_args)
-        raise ValueError('Arguments missing: ' +
-                         ' '.join(missing_args))
-
-    # Check if the arguments are correct, i.e., is fstart < fstop if
-    # fstep is positive, is fstart > fstop if step is negative, is
-    # fstart or fstop == 0?
-    fstep = to_num(cmd['npoints'])
-    fstart = to_num(cmd['fstart'])
-    fstop = to_num(cmd['fstop'])
-
-    if fstep is None:
-        fstep = 1
-    if fstart == 0:
-        raise ValueError("fstart cannot be zero")
-    if fstop == 0:
-        raise ValueError("fstart cannot be zero")
-    if fstop < fstart:
-        raise ValueError("fstep size > 0 but fstop < fstart ")
-    if fstep < 0:
-        raise ValueError("npoints must be a positive integer")
-
-    # Run the command
-    return send_command('ac ' + ' '.join(cmd.values()))
+  parsed_args = __parse__('ac', args, kwargs)
+    send_command('ac'+' '.join(parsed_args))
 
 
 def run_tran(*args, **kwargs):
@@ -457,78 +425,8 @@ def run_tran(*args, **kwargs):
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
 
-    cmd = OrderedDict()
-    cmd['tstep'] = ""
-    cmd['tstop'] = ""
-    cmd['tstart'] = ""
-    cmd['tmax'] = ""
-    cmd['uic'] = ""  # need to check for this
-
-    # Parse arguments:
-    #
-    # Case 1:
-    # -------
-    # If just one arg is given, assume that the entire string is a
-    # command. Separate it out and assign it to the cmd dictionary
-    # for error checking.
-    if len(args) == 1:
-        clean_arg = ' '.join(args[0].split())
-        for key, arg in zip(cmd.keys(), clean_arg.split(' ')):
-            cmd[key] = xstr(arg)
-    else:
-        # Case 2:
-        # -------
-        # If the simulation args are given as comma separated values,
-        # assign them to the dictionary for error checking.
-        for key, value in zip(cmd.keys(), args):
-            cmd[key] = xstr(value)
-
-    # Case 3:
-    # -------
-    # Finally parse the keyword args. Overwrite any args that
-    # were already given.
-        for key in kwargs:
-            if key not in cmd:
-                raise KeyError('invalid keyword argument')
-            else:
-                cmd[key] = xstr(kwargs[key])
-
-    # Check if the arguments were entered correctly:
-    #
-    # 1. Checks for first source
-    # --------------------------
-    # Check if any of the required arguments are empty.
-    empty_args = set([key for key in cmd if cmd[key] == ""])
-    required_args = set(['tstep', 'tstop'])
-    if any(arg in empty_args for arg in required_args):
-        missing_args =\
-            empty_args.intersection(required_args)
-        raise ValueError('Arguments missing: ' +
-                         ' '.join(missing_args))
-
-    # Check if the arguments are correct, i.e., is tstop < tstart if
-    # tstep is zero
-    if cmd["tstart"] != "":
-        tstart = to_num(cmd['tstep'])
-    else:
-        tstart = 0
-
-    tstop = to_num(cmd['tstop'])
-    tstep = to_num(cmd['tstep'])
-
-    if tstep is None:
-        tstep = 1
-    if tstep == 0:
-        raise ValueError("tstep cannot be zero")
-
-    if tstep < 0:
-        raise ValueError("tstep cannot be negative")
-
-    if tstop < tstart:
-        raise ValueError("tstop cannot be less than tstart")
-
-    # Run the command
-    return send_command('tran ' + ' '.join(cmd.values()))
+  parsed_args = __parse__('tran', args, kwargs)
+    send_command('tran'+' '.join(parsed_args))
 
 
 def run_op():
@@ -572,7 +470,6 @@ def get_vector_names(plot_name=None):
     it unspecified, the vector names from the current plot are
     returned.
     """
-
     if plot_name is None:
         plot_name = current_plot()
 
@@ -693,3 +590,4 @@ def load_netlist(netlist):
     while not send_char_queue.empty():
         output.append(send_char_queue.get_nowait())
     return output
+
