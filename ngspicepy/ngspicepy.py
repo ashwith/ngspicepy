@@ -1,4 +1,4 @@
-lsimport string
+import string
 
 
 from collections import OrderedDict
@@ -204,12 +204,9 @@ def check_sim_param(start, stop, step=None):
     return (True, "All good")
 
 
-def __parse__(cmd, *args, **kwargs):
-    """ Performs the parsing function for the ac,dc and tran cases.
+def __parse__(sim_cmd, *args, **kwargs):
+    """ Performs the parsing function for the ac,dc and tran cases."""
 
-    This function per
-
-    """
     cmd_dc = OrderedDict()
     cmd_dc['src'] = ""
     cmd_dc['start'] = ""
@@ -219,33 +216,37 @@ def __parse__(cmd, *args, **kwargs):
     cmd_dc['start2'] = ""
     cmd_dc['stop2'] = ""
     cmd_dc['step2'] = ""
-    pdc_keys=['start', 'stop', 'step']
-    
+
+    is_parametric = False
+
+    pdc_keys = ['start', 'stop', 'step']
     cmd_ac = OrderedDict()
     cmd_ac['variation'] = ""
     cmd_ac['npoints'] = ""
     cmd_ac['fstart'] = ""
     cmd_ac['fstop'] = ""
     pac_keys = ['fstart', 'fstop', 'npoints']
-    
     cmd_tran = OrderedDict()
     cmd_tran['tstep'] = ""
     cmd_tran['tstop'] = ""
-    cmd_tran['tstart'] = ""
+    cmd_tran['tstart'] = "0"
     cmd_tran['tmax'] = ""
-    ptran_keys=['tstart', 'tstop', 'tstep']
+    ptran_keys = ['tstart', 'tstop', 'tstep']
 
-    if ac in args:
+    if sim_cmd == 'ac':
         cmd = cmd_ac
         p_keys = pac_keys
-    elif dc in args:
+        required_args = set(['variation', 'npoints', 'fstart', 'fstop'])
+    elif sim_cmd == 'dc':
         cmd = cmd_dc
         p_keys = pdc_keys
-    elif tran in args:
+        required_args = set(['src', 'start', 'stop', 'step'])
+    elif sim_cmd == 'tran':
         cmd = cmd_tran
         p_keys = ptran_keys
+        required_args = set(['tstep', 'tstop'])
 
-  # Parse arguments:
+    # Parse arguments:
     #
     # Case 1:
     # -------
@@ -280,8 +281,7 @@ def __parse__(cmd, *args, **kwargs):
     # --------------------------
     # Check if any of the required arguments are empty.
     empty_args = set([key for key in cmd if cmd[key] == ""])
-    keys=list(cmd.keys())
-    required_args = set([keys[0], keys[1], keys[2], keys[3]])
+    keys = list(cmd.keys())
     if any(arg in empty_args for arg in required_args):
         missing_args =\
             empty_args.intersection(required_args)
@@ -292,8 +292,8 @@ def __parse__(cmd, *args, **kwargs):
     # -------------------------------
     #
     # 2a. Arguments of second source given, check if source is given.
-    if dc in args:
-        required_args = set([key[5], key[6], key[7]])
+    if sim_cmd == 'dc':
+        required_args = set([keys[5], keys[6], keys[7]])
         if any(arg not in empty_args for arg in required_args) and\
                 cmd['src2'] == "":
             raise ValueError('Second source not specified.')
@@ -301,11 +301,11 @@ def __parse__(cmd, *args, **kwargs):
     # 2b. Second source is specified, check if its required arguments
     # are empty.
         if cmd['src2'] != "":
-            required_args = set([[key[5], key[6], key[7]])
+            required_args = set([keys[5], keys[6], keys[7]])
             if any(arg in empty_args for arg in required_args):
-                missing_args =empty_args.intersection(required_args)
+                missing_args = empty_args.intersection(required_args)
                 raise ValueError('Arguments missing: ' +
-                    ' '.join(missing_args))
+                                 ' '.join(missing_args))
             else:
                 is_parametric = True
 
@@ -320,7 +320,7 @@ def __parse__(cmd, *args, **kwargs):
         raise ValueError('Wrong values')
     # Do the same for the second source if it exists.
 
-    if dc in args:
+    if sim_cmd == 'dc':
         if is_parametric:
             start = to_num(cmd['start2'])
             stop = to_num(cmd['stop2'])
@@ -372,9 +372,9 @@ def run_dc(*args, **kwargs):
     run_dc(src='v1', start=0, stop=1, step=0.1,
            src2=v2, start=0, step=0.3, stop=1)
     """
-    
-    parsed_args = __parse__('dc', args, kwargs)
-    send_command('dc'+' '.join(parsed_args))
+    parsed_args = __parse__('dc', *args, **kwargs)
+    return send_command('dc '+' '.join(parsed_args))
+
 
 def run_ac(*args, **kwargs):
     """Run a AC simulation on ngspice
@@ -400,9 +400,8 @@ def run_ac(*args, **kwargs):
     run_ac('dec', 10, '1k', '100k')
     run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
-
-  parsed_args = __parse__('ac', args, kwargs)
-    send_command('ac'+' '.join(parsed_args))
+    parsed_args = __parse__('ac', *args, **kwargs)
+    return send_command('ac '+' '.join(parsed_args))
 
 
 def run_tran(*args, **kwargs):
@@ -425,8 +424,8 @@ def run_tran(*args, **kwargs):
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
 
-  parsed_args = __parse__('tran', args, kwargs)
-    send_command('tran'+' '.join(parsed_args))
+    parsed_args = __parse__('tran', *args, **kwargs)
+    return send_command('tran ' + ' '.join(parsed_args))
 
 
 def run_op():
@@ -590,4 +589,3 @@ def load_netlist(netlist):
     while not send_char_queue.empty():
         output.append(send_char_queue.get_nowait())
     return output
-
