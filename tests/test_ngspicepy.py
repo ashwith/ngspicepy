@@ -1,13 +1,20 @@
-import sys, os
+import sys
+import os
+
 module_path = os.path.dirname(os.path.curdir + os.path.sep)
 sys.path.insert(0, os.path.abspath(module_path))
+
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
     c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
     POINTER, Structure, cast, pointer
-from unittest import mock
+
 import ngspicepy as ng
+
 import numpy as np
+
 import pytest
+
+from unittest import mock
 
 ret_val = ng.vector_info()
 ret_val.v_name = cast(create_string_buffer(b"v-sweep"), c_char_p)
@@ -36,6 +43,7 @@ class TestSendCommand:
     def test_send_command(self):
         val = ng.send_command(' dc v1 0 1 .1 ')
         assert isinstance(val, list)
+
 
 class TestGetData:
 
@@ -126,6 +134,14 @@ class TestGetVectorNames:
         val = ng. get_vector_names('dc1')
         assert val == ['v1#branch', 'v2#branch',  'V(2)', 'V(1)', 'v-sweep']
 
+    def test_get_vector_names(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 .1')
+        ng.run_dc('v1 0 1 .1')
+
+        with pytest.raises(ValueError):
+            ng.get_vector_names('dca')
+
 
 class TestLoadNetlist:
 
@@ -149,6 +165,7 @@ class TestLoadNetlist:
     def test_invalid_filename(self):
         with pytest.raises(ValueError):
             ng.load_netlist('dummy.net')
+
 
 class TestRunDC:
     def test_run_dc(self):
@@ -178,6 +195,7 @@ class TestRunDC:
     def test_argtypeTwoSrc(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1 v2 0 2 0.2')
+
 
 class TestRunAC:
     def test_run_ac(self):
@@ -227,3 +245,51 @@ class TestRunTran:
         ng.load_netlist(netlists_path + 'tran_check.net')
         val = ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
         assert mock_send_command.called
+
+
+class TestXstr:
+    def test_xstr(self):
+        none = None
+        val = ng.xstr(none)
+        assert isinstance(val, str)
+
+
+class TestToNum:
+    def test_to_num(self):
+        with pytest.raises(ValueError):
+            num = 'a'
+            val = ng.to_num(num)
+
+
+class TestCheckSimParam:
+    def test_check_sim_param(self):
+        start = 0
+        stop = 1
+        step = .1
+        is_good, val = ng.check_sim_param(start, stop, step)
+        assert is_good
+
+
+class TestParse:
+    def test__parse__(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        with pytest.raises(KeyError):
+            ng.run_dc(src='v1', start=0, stop=1, fstep=.1)
+
+        with pytest.raises(ValueError):
+            ng.run_dc(src='v1', start=0, stop=1)
+
+        with pytest.raises(ValueError):
+            ng.run_dc('v1 0 1 1m 0 1 .3')
+
+        with pytest.raises(ValueError):
+            ng.run_dc('v1 0 1 0 ')
+
+        with pytest.raises(ValueError):
+            ng.run_dc('v1 0 1 1m v2 0 1 0')
+
+
+class TestRunOp:
+    def test_run_op(self):
+        val = ng.run_op()
+        assert isinstance(val, list)
