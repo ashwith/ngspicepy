@@ -306,6 +306,10 @@ class TestParse:
 
         with pytest.raises(ValueError):
             ng.run_dc(src='v1', start=0, stop=1, step=.1,
+                    start2=0, stop2=1, step2=.1)
+
+        with pytest.raises(ValueError):
+            ng.run_dc(src='v1', start=0, stop=1, step=.1,
                     src2='v2', start2=0, stop2=1)
 
         with pytest.raises(ValueError):
