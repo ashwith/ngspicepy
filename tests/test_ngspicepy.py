@@ -268,6 +268,9 @@ class TestCheckSimParam:
     def test_check_sim_param(self):
         start = 0
         stop = 1
+        is_good, val = ng.check_sim_param(start, stop)
+        assert is_good
+
         step = .1
         is_good, val = ng.check_sim_param(start, stop, step)
         assert is_good
@@ -302,7 +305,8 @@ class TestParse:
             ng.run_dc(src='v1', start=0, stop=1)
 
         with pytest.raises(ValueError):
-            ng.run_dc('v1', 0, 1, .1, 0, 1, .3)
+            ng.run_dc(src='v1', start=0, stop=1, step=.1,
+                    start2=0, stop2=1, step2=.3)
 
         with pytest.raises(ValueError):
             ng.run_dc('v1 0 1 0 ')
