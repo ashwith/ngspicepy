@@ -97,8 +97,11 @@ class TestGetData:
         with pytest.raises(ValueError):
             ng.get_data('dc1.v-swoop')
 
+        with pytest.raises(ValueError):
+            ng.get_data('v-swoop', 'dc1')
+
     @mock.patch('ngspicepy.libngspice.ngGet_Vec_Info',
-                return_value=ret_val)
+            return_value=ret_val)
     def test_api_call(self, mock_get_info):
         ng.get_data('v-sweep')
         # mock_get_info.assert_called_once_with(create_string_buffer(b'v-sweep'))
@@ -269,6 +272,25 @@ class TestCheckSimParam:
         is_good, val = ng.check_sim_param(start, stop, step)
         assert is_good
 
+        step = 0
+        is_good, val = ng.check_sim_param(start, stop, step)
+        assert not is_good
+        assert val == "step size is zero"
+
+        start = 2
+        stop = 1
+        step = .1
+        is_good, val = ng.check_sim_param(start, stop, step)
+        assert not is_good
+        assert val == "step size > 0 but stop < start "
+
+        start = 1
+        stop = 2
+        step = -.1
+        is_good, val = ng.check_sim_param(start, stop, step)
+        assert not is_good
+        assert val == "step size < 0 but stop > start"
+
 
 class TestParse:
     def test__parse__(self):
@@ -280,7 +302,7 @@ class TestParse:
             ng.run_dc(src='v1', start=0, stop=1)
 
         with pytest.raises(ValueError):
-            ng.run_dc('v1 0 1 1m 0 1 .3')
+            ng.run_dc('v1', 0, 1, .1, 0, 1, .3)
 
         with pytest.raises(ValueError):
             ng.run_dc('v1 0 1 0 ')
