@@ -136,8 +136,6 @@ class TestGetVectorNames:
         ng.run_dc('v1 0 1 0.1')
         val = ng. get_vector_names('dc1')
         assert val == ['v1#branch', 'v2#branch',  'V(2)', 'V(1)', 'v-sweep']
-
-    def test_get_vector_names(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 .1')
         ng.run_dc('v1 0 1 .1')
@@ -168,6 +166,9 @@ class TestLoadNetlist:
     def test_invalid_filename(self):
         with pytest.raises(ValueError):
             ng.load_netlist('dummy.net')
+
+    with pytest.raises(TypeError):
+        ng.load_netlist(123)
 
 
 class TestRunDC:
