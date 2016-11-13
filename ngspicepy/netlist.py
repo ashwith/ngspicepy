@@ -1,5 +1,7 @@
 import ngspicepy as ng
+
 import os
+
 import string
 
 
@@ -41,11 +43,16 @@ class Netlist(object):
 
     def setup_sim(self, sim_type, *args, **kwargs):
         """Sets up the simulation."""
-        pass
+        self.sim_type = sim_type
+        if self.sim_type == 'op':
+            self.parsed_args = None
+        else:
+            self.parsed_args = ng.parse(sim_type, *args, **kwargs)
 
     def run(self):
-        """Runs the simulation."""
-        pass
+        """Runs the simulation"""
+        ng.load_netlist(self.netlist)
+        ng.send_command(self.sim_type + ' ' + ' '.join(self.parsed_args))
 
     def get_current_plot(self):
         return ng.current_plot()
