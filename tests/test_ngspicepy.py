@@ -323,3 +323,11 @@ class TestRunOp:
     def test_run_op(self):
         val = ng.run_op()
         assert isinstance(val, list)
+
+
+class TestSetOptions:
+    def test_set_options(self):
+        val = ng.set_options(trtol=1, temp=300)
+        assert isinstance(val, list)
+        val = ng.set_options('trtol=1')
+        assert isinstance(val, list)
