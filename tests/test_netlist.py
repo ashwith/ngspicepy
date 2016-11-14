@@ -33,7 +33,7 @@ class TestInit:
         net_list = '\n'.join(net_list)
         net = nt.Netlist(net_list)
         assert isinstance(net, nt.Netlist)
-      
+
         with pytest.raises(ValueError):
             nt.Netlist(netlists_path + ' ' + 'ac_dc_check.net')
 
@@ -43,6 +43,7 @@ class TestInit:
 
 class TestSetupSim:
     def test_setup_sim(self):
+        ng.reset()
         net1 = nt.Netlist(netlists_path + 'dc_ac_check.net')
         net1.setup_sim('op')
         assert net1.sim_type == 'op'
@@ -51,10 +52,12 @@ class TestSetupSim:
         net1.setup_sim('dc', 'v1 0 1 0.1')
         assert net1.sim_type == 'dc'
         assert net1.parsed_args == 'v1 0 1 0.1'.split()
+        ng.reset()
 
 
 class TestRun:
     def test_run(self):
+        ng.reset()
         net1 = nt.Netlist(netlists_path + 'dc_ac_check.net')
         net1.setup_sim('op')
         net1.run()
@@ -70,10 +73,12 @@ class TestGetCurrentPlot:
         val = net.get_current_plot()
         assert val == 'dc1'
         assert isinstance(val, str)
+        ng.reset()
 
 
 class TestGetPlots:
     def test_get_plots(self):
+        ng.reset()
         net = nt.Netlist(netlists_path + 'dc_ac_check.net')
         net.setup_sim('dc', 'v1 0 1 .3')
         net.run()
@@ -82,13 +87,15 @@ class TestGetPlots:
         net.setup_sim('dc', 'v1 0 1 .3')
         net.run()
         val = net.get_plots()
-        assert len(val) == 5
-        assert val == ['dc4', 'dc3', 'dc2', 'dc1', 'const']
+        assert len(val) == 4
+        assert val == ['dc3', 'dc2', 'dc1', 'const']
         assert isinstance(val, list)
+        ng.reset()
 
 
 class TestGetVectorNames:
     def test_get_vector_names(self):
+        ng.reset()
         net = nt.Netlist(netlists_path + 'dc_ac_check.net')
         net.setup_sim('dc', 'v1 0 1 .3')
         net.run()
@@ -96,6 +103,7 @@ class TestGetVectorNames:
         assert len(val) == 5
         assert isinstance(val, list)
         assert val == ['v1#branch', 'v2#branch', 'V(2)', 'V(1)', 'v-sweep']
+        ng.reset()
 
 
 class TestGetVector:
@@ -106,6 +114,7 @@ class TestGetVector:
         val = net.get_vector('V(1)', 'dc1')
         assert isinstance(val, numpy.ndarray)
         assert len(val) == 4
+        ng.reset()
 
 
 class TestGetVectors:
@@ -116,6 +125,7 @@ class TestGetVectors:
         val = net.get_vectors('dc1')
         assert len(val) == 5
         assert isinstance(val, dict)
+        ng.reset()
 
 
 class TestCheckNetlist:

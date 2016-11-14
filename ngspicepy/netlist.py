@@ -42,7 +42,17 @@ class Netlist(object):
         self.__checkNetlist__()
 
     def setup_sim(self, sim_type, *args, **kwargs):
-        """Sets up the simulation."""
+        """Sets up the simulation.
+
+        We need to pass the type of the simulation and the
+        simulation parameters as arguments.
+
+        Examples for dc, ac, tran, and op are stated below:
+        setup_sim('dc','v1 0 1 .3')
+        setup_sim('ac','dec 10 1 10')
+        setup_sim('tran','1 10')
+
+        """
         self.sim_type = sim_type
         if self.sim_type == 'op':
             self.parsed_args = []
@@ -50,23 +60,32 @@ class Netlist(object):
             self.parsed_args = ng.parse(sim_type, *args, **kwargs)
 
     def run(self):
-        """Runs the simulation"""
+        """Runs the simulation.
+
+        Depending on the arguments set in the set_simu()
+        this function simply run that simulation
+        """
         ng.load_netlist(self.netlist)
         ng.send_command(self.sim_type + ' ' + ' '.join(self.parsed_args))
 
     def get_current_plot(self):
+        """Returns the name of the latest plot."""
         return ng.current_plot()
 
     def get_plots(self):
+        """Returns the name of all the plots run so far."""
         return ng.get_plot_names()
 
     def get_vector_names(self, plot_name):
+        """Returns the vectors specific with the given plot"""
         return ng.get_vector_names(plot_name)
 
     def get_vector(self, vector_name, plot_name):
+        """Returns the specified vector of the given plot"""
         return ng.get_data(vector_name, plot_name)
 
     def get_vectors(self, plot_name):
+        """Returns the all vectors associated with the given plot """
         return ng.get_all_data(plot_name)
 
     def __checkNetlist__(self):
