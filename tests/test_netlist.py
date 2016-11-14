@@ -13,6 +13,8 @@ sys.path.insert(0, os.path.abspath(module_path))
 
 from ngspicepy import netlist as nt
 
+import ngspicepy as ng
+
 netlists_path = 'tests/netlists/'
 
 
@@ -53,7 +55,11 @@ class TestSetupSim:
 
 class TestRun:
     def test_run(self):
-       pass 
+        net1 = nt.Netlist(netlists_path + 'dc_ac_check.net')
+        net1.setup_sim('op')
+        net1.run()
+        assert net1.get_plots() == ['op1', 'const']
+        ng.reset()
 
 
 class TestGetCurrentPlot:
