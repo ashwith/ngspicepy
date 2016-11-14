@@ -40,12 +40,19 @@ class TestInit:
 
 class TestSetupSim:
     def test_setup_sim(self):
-        pass
+        net1 = nt.Netlist(netlists_path + 'dc_ac_check.net')
+        net1.setup_sim('op')
+        assert net1.sim_type == 'op'
+        assert net1.parsed_args == []
+
+        net1.setup_sim('dc', 'v1 0 1 0.1')
+        assert net1.sim_type == 'dc'
+        assert net1.parsed_args == 'v1 0 1 0.1'.split()
 
 
 class TestRun:
     def test_run(self):
-        pass
+       pass 
 
 
 class TestGetCurrentPlot:
