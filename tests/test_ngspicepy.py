@@ -35,8 +35,8 @@ class TestGetPlotNames:
 
         val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == ['dc10','dc9','dc8','dc7','dc6','dc5','dc4','dc3', 
-                'dc2', 'dc1', 'const']
+        assert val == ['dc10', 'dc9', 'dc8', 'dc7', 'dc6', 'dc5', 
+                'dc4', 'dc3', 'dc2', 'dc1', 'const']
         assert len(val) == 11
 
 
@@ -248,6 +248,32 @@ class TestRunTran:
         ng.load_netlist(netlists_path + 'tran_check.net')
         val = ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
         assert mock_send_command.called
+
+
+class TestClearPlots:
+    def test_clear_plots(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        val = ng.clear_plots()
+        assert isinstance(val, list)
+        assert val == []
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        val = ng.clear_plots('dc1 dc2')
+        assert isinstance(val, list)
+        assert val == []
+        val = ng.clear_plots(('dc6', 'dc5'))
+        assert isinstance(val, list)
+        assert val == []
+        val = ng.clear_plots(['dc3'])
+        assert isinstance(val, list)
+        assert val == []
 
 
 class TestXstr:
