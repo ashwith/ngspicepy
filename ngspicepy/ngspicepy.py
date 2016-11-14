@@ -572,7 +572,7 @@ def set_options(*args, **kwargs):
     for option in args:
         return send_command('option ' + str(option))
     for option in kwargs:
-        if kwargs[option] is None:
+        if kwargs[option] is []:
             return send_command('option ' + option)
         else:
             return send_command('option ' + option + '=' +
