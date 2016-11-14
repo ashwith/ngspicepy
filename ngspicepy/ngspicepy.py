@@ -10,6 +10,7 @@ from queue import Queue
 
 import numpy as np
 
+import string
 # Load the ngspice shared library.
 # TODO: Figure out the path intelligently
 libpath = "/usr/local/lib/libngspice.so.0"
@@ -434,6 +435,35 @@ def run_op():
      circuit """
     op_result = send_command('op')
     return op_result
+
+
+def clear_plots(*args):
+    """ Clears the specified plots names.
+
+    The arguments passed may be empty, a string, list or tuple.
+
+    clear_plots()
+    clear_plots('dc dc2 dc3')
+    clear_plots(('dc1','dc2','dc3'))
+    clear_plots(['dc1','dc2','dc3'])
+    """
+    if len(args) == 0:
+        clear_cmd = 'all'
+    elif len(args) == 1:
+        if type(args[0]) == str:
+            clear_cmd = args[0]
+        elif type(args[0]) == list or type(args[0]) == tuple:
+            clear_cmd = ' '.join(args[0])
+        else:
+            raise TypeError('Type must be string,list or tuple')
+    else:
+        clear_cmd = ' '.join(args[0])
+    return send_command('destroy ' + clear_cmd)
+
+
+def reset():
+    """Same as calling clear_plots(). Resets the ngspice environment."""
+    clear_plots()
 
 
 def get_plot_names():
