@@ -45,7 +45,7 @@ class Netlist(object):
         """Sets up the simulation."""
         self.sim_type = sim_type
         if self.sim_type == 'op':
-            self.parsed_args = None
+            self.parsed_args = []
         else:
             self.parsed_args = ng.parse(sim_type, *args, **kwargs)
 
