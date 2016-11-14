@@ -329,7 +329,12 @@ def parse(sim_cmd, *args, **kwargs):
             if not is_good:
                 raise ValueError('Wrong Values')
 
-    return list(cmd.values())
+    val = list(cmd.values())
+    new_list=[]
+    for a in val:
+        if a !='':
+            new_list = new_list + [a]
+    return new_list
 
 
 # User functions
