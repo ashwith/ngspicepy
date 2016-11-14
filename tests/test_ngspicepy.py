@@ -28,6 +28,7 @@ netlists_path = 'tests/netlists/'
 
 class TestGetPlotNames:
     def test_get_plot_names(self):
+        ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         ng.run_dc('v1 0 1 0.2')
@@ -35,15 +36,15 @@ class TestGetPlotNames:
 
         val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == ['dc10', 'dc9', 'dc8', 'dc7', 'dc6', 'dc5', 
-                'dc4', 'dc3', 'dc2', 'dc1', 'const']
-        assert len(val) == 11
-
+        assert val == ['dc3', 'dc2', 'dc1', 'const']
+        assert len(val) == 4
+        ng.reset()
 
 class TestSendCommand:
     def test_send_command(self):
         val = ng.send_command(' dc v1 0 1 .1 ')
         assert isinstance(val, list)
+        ng.reset()
 
 
 class TestGetData:
@@ -62,15 +63,17 @@ class TestGetData:
         assert val[0] == pytest.approx(1j)
 
     def test_2args(self):
+        ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         ng.run_dc('v1 0 1 0.2')
-
         val = ng.get_data('v-sweep', 'dc1')
         assert val.dtype == 'float64'
-        assert len(val) == 4
+        assert len(val) == 11
+        ng.reset()
 
     def test_1arg_no_plot(self):
+        ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         ng.run_dc('v1 0 1 0.2')
@@ -78,6 +81,7 @@ class TestGetData:
         val = ng.get_data('v-sweep')
         assert val.dtype == 'float64'
         assert len(val) == 6
+        ng.reset()
 
     def test_1arg_plot(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
@@ -86,7 +90,8 @@ class TestGetData:
 
         val = ng.get_data('dc1.v-sweep')
         assert val.dtype == 'float64'
-        assert len(val) == 4
+        assert len(val) == 11
+        ng.reset()
 
     def test_invalid_vector_name(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
@@ -105,7 +110,7 @@ class TestGetData:
         ng.get_data('v-sweep')
         # mock_get_info.assert_called_once_with(create_string_buffer(b'v-sweep'))
         assert mock_get_info.called
-
+        ng.reset()
 
 class TestGetAllData:
     def test_get_all_data(self):
@@ -114,11 +119,13 @@ class TestGetAllData:
         val = ng.get_all_data('dc1')
         for i in val:
             assert type(i) == str
-
+        ng.reset()
 
 class TestCurrentPlot:
 
     def test_current_plot(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 0.1')
         val = ng.current_plot()
         assert isinstance(val, str)
 
@@ -127,7 +134,7 @@ class TestCurrentPlot:
     def test_api_call(self, mock_CurPlot):
         ng.current_plot()
         mock_CurPlot.assert_called_once_with()
-
+        ng.reset()
 
 class TestGetVectorNames:
     def test_get_vector_names(self):
@@ -135,13 +142,14 @@ class TestGetVectorNames:
         ng.run_dc('v1 0 1 0.1')
         val = ng. get_vector_names('dc1')
         assert val == ['v1#branch', 'v2#branch',  'V(2)', 'V(1)', 'v-sweep']
+        ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 .1')
         ng.run_dc('v1 0 1 .1')
 
         with pytest.raises(ValueError):
             ng.get_vector_names('dca')
-
+        ng.reset()
 
 class TestLoadNetlist:
 
@@ -175,61 +183,69 @@ class TestRunDC:
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         val = ng.run_dc('v1 0 1 .1 v2 0 1 .1 ')
         assert isinstance(val, list)
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeStr(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1', '0', 1, '0.1')
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeKWArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc(src='v1', stop='1', start=0, step='0.1')
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeTwoSrc(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1 v2 0 2 0.2')
-
+        ng.reset()
 
 class TestRunAC:
     def test_run_ac(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         val = ng.run_ac('dec 10 1k 1Meg')
         assert isinstance(val, list)
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeStr(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_ac('dec 10 1k 1Meg')
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_ac(variation='dec', fstart=10, fstop='100', npoints=100)
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeKWArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_ac('dec 10 1 1Meg')
         assert mock_send_command.called
-
+        ng.reset()
 
 class TestRunTran:
     def test_run_tran(self):
         ng.load_netlist(netlists_path + 'tran_check.net')
         val = ng.run_tran('1u 1m')
         assert isinstance(val, list)
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeStr(self, mock_send_command):
@@ -242,45 +258,52 @@ class TestRunTran:
         ng.load_netlist(netlists_path + 'tran_check.net')
         val = ng.run_tran('1u', '1m', '10u')
         assert mock_send_command.called
+        ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeKWArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'tran_check.net')
         val = ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
         assert mock_send_command.called
-
+        ng.reset()
 
 class TestClearPlots:
     def test_clear_plots(self):
+        ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
-        val = ng.clear_plots()
+        ng.clear_plots()
+        val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == []
+        assert val == ['const']
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
         ng.run_dc('v1 0 1 .3')
-        val = ng.clear_plots('dc1 dc2')
+        ng.clear_plots('dc1 dc2')
+        val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == []
-        val = ng.clear_plots(('dc6', 'dc5'))
+        assert val == ['dc6', 'dc5', 'dc4','dc3','const']
+        ng.clear_plots(('dc6', 'dc5'))
+        val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == []
-        val = ng.clear_plots(['dc3'])
+        assert val == ['dc4','dc3','const']
+        ng.clear_plots(['dc3','dc4'])
+        val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == []
+        assert val == ['const']
+        ng.reset()
         
-        #with pytest.raises('TypeError'):
-        #    ng.load_netlist(netlists_path + 'dc_ac_check.net')
-        #    ng.run_dc('v1 0 1 .3')
-        #   ng.run_dc('v1 0 1 .3')
-        #   ng.clear_plots(['dc1 dc2'])
-
+        with pytest.raises(TypeError):
+            ng.load_netlist(netlists_path + 'dc_ac_check.net')
+            ng.run_dc('v1 0 1 .3')
+            ng.run_dc('v1 0 1 .3')
+            ng.clear_plots({'dc1 dc2':1})
+        ng.reset()
 
 class TestReset:
     def test_reset(self):
@@ -292,7 +315,7 @@ class TestReset:
         val = ng.get_plot_names()
         assert val == ['const']
         assert isinstance(val, list)
-
+        ng.reset()
 
 class TestXstr:
     def test_xstr(self):
