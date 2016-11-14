@@ -6,8 +6,9 @@ python:
 before_install:
   - sudo apt-get install ngspice
   - sudo apt-get install libfftw3-3
-  - git clone https://github.com/imr/ngspice
-  - cd ngspice
+  - wget http://downloads.sourceforge.net/project/ngspice/ng-spice-rework/26/ngspice-26.tar.gz
+  - tar xvzf ngspice-26.tar.gz
+  - cd ngspice-26
   - mkdir release
   - cd release
   - ../configure --with-ngshared
