@@ -274,6 +274,24 @@ class TestClearPlots:
         val = ng.clear_plots(['dc3'])
         assert isinstance(val, list)
         assert val == []
+        
+        #with pytest.raises('TypeError'):
+        #    ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        #    ng.run_dc('v1 0 1 .3')
+        #   ng.run_dc('v1 0 1 .3')
+        #   ng.clear_plots(['dc1 dc2'])
+
+
+class TestReset:
+    def test_reset(self):
+        ng.load_netlist(netlists_path + 'dc_ac_check.net')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.run_dc('v1 0 1 .3')
+        ng.reset()
+        val = ng.get_plot_names()
+        assert val == ['const']
+        assert isinstance(val, list)
 
 
 class TestXstr:
