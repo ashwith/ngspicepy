@@ -35,8 +35,9 @@ class TestGetPlotNames:
 
         val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == ['dc3', 'dc2', 'dc1', 'const']
-        assert len(val) == 4
+        assert val == ['dc10','dc9','dc8','dc7','dc6','dc5','dc4','dc3', 
+                'dc2', 'dc1', 'const']
+        assert len(val) == 11
 
 
 class TestSendCommand:
@@ -46,10 +47,8 @@ class TestSendCommand:
 
 
 class TestGetData:
-
     def test_real(self):
         val = ng.get_data('const.e')
-
         assert type(val) == np.ndarray
         assert len(val) == 1
         assert val.dtype == 'float64'
@@ -69,7 +68,7 @@ class TestGetData:
 
         val = ng.get_data('v-sweep', 'dc1')
         assert val.dtype == 'float64'
-        assert len(val) == 11
+        assert len(val) == 4
 
     def test_1arg_no_plot(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
@@ -87,7 +86,7 @@ class TestGetData:
 
         val = ng.get_data('dc1.v-sweep')
         assert val.dtype == 'float64'
-        assert len(val) == 11
+        assert len(val) == 4
 
     def test_invalid_vector_name(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
