@@ -73,7 +73,7 @@ class Netlist(object):
         return ng.current_plot()
 
     def get_plots(self):
-         """Return a list of plot names.
+        """Return a list of plot names.
 
         A plot is the name for a group of vectors. Example: A DC
         simulation run right after ngspice is loaded creates a plot called
@@ -100,7 +100,7 @@ class Netlist(object):
         return ng.get_data(vector_name, plot_name)
 
     def get_vectors(self, plot_name):
-         """Return a dictionary of all vectors in the specified plot."""
+        """Return a dictionary of all vectors in the specified plot."""
 
         return ng.get_all_data(plot_name)
 
