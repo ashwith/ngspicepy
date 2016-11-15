@@ -28,17 +28,20 @@ class TestInit:
         net = nt.Netlist(net_list)
         assert isinstance(net, nt.Netlist)
 
-        with open(netlists_path + 'dc_ac_check.net') as f:
-            netlist = f.readlines
-        net_list = '\n'.join(net_list)
-        net = nt.Netlist(net_list)
+        net = nt.Netlist(netlists_path + 'dc_ac_check.net')
         assert isinstance(net, nt.Netlist)
 
         with pytest.raises(ValueError):
-            nt.Netlist(netlists_path + ' ' + 'ac_dc_check.net')
+            nt.Netlist(netlists_path + 'ac_dc_check.net')
 
         with pytest.raises(TypeError):
             nt.Netlist(123)
+
+        with pytest.raises(ValueError):
+            nt.Netlist(netlists_path + 'dc_ac_dot.net')
+
+        with pytest.raises(ValueError):
+            nt.Netlist(netlists_path + 'dc_ac_1dot.net')
 
 
 class TestSetupSim:
@@ -128,11 +131,8 @@ class TestGetVectors:
         ng.reset()
 
 
-class TestCheckNetlist:
-    def test__checkNetlist__(self):
-        pass
-
-
 class TestStr:
     def test__str__(self):
-        pass
+        net = nt.Netlist(netlists_path + 'dc_ac_check.net')
+        val = str(net)
+        assert isinstance(val, str)
