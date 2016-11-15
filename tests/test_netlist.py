@@ -28,7 +28,13 @@ class TestInit:
         net = nt.Netlist(net_list)
         assert isinstance(net, nt.Netlist)
 
-        net = nt.Netlist(netlists_path + 'dc_ac_check.net')
+        with open(netlists_path + 'dc_ac_check.net') as f:
+            net_list = f.readlines()
+        net_list = '\n'.join(net_list)
+        net = nt.Netlist(net_list)
+        assert isinstance(net, nt.Netlist)
+
+        net = nt.Netlist(netlists_path + 'dc_ac_control.net')
         assert isinstance(net, nt.Netlist)
 
         with pytest.raises(ValueError):
