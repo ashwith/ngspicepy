@@ -142,10 +142,11 @@ class Netlist(object):
         for idx, line in enumerate(netlist, start=2):
             # Detect if we're in a control block
             command = line.split()[0].upper()
-            if command == 'CONTROL':
+            if command == '.CONTROL':
                 inControl = True
-            elif command == 'ENDC':
+            elif command == '.ENDC':
                 inControl = False
+                continue
 
             if not inControl:
                 # Check if line is a valid component.
