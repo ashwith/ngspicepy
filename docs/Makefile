@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR    = ../../myproject-docs
+BUILDDIR    = ../../ngspicepy-docs
 PDFBUILDDIR = /tmp
 PDF     = ../manual.pdf
 
