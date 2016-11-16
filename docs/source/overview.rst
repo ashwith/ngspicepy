@@ -2,10 +2,10 @@
 Overview
 ********
 
-ngspicepy as a python library for ngspice. It provides python wrappers for
+ngspicepy is a python library for ngspice. It provides python wrappers for
 ngspice's C API along with other useful functions. This allows one to run SPICE
-simulations and get the data as numpy as arrays directly from python instead of
-having to use files to use the data in python. Python has better tools to
+simulations and get the data as numpy arrays directly from python instead of
+having to use files to store ngspice's data. Python has better tools to
 process data and plot relavent results. Thus ngspicepy gives a bridge between
 ngspice's powerful simulator and python.
 
