@@ -367,7 +367,7 @@ def __parse__(sim_cmd, *args, **kwargs):
 def send_command(command):
     """Send a command to ngspice.
 
-    The argument command is string that contains a valid ngspice
+    The argument `command` is string that contains a valid ngspice
     command. See the chapter 'Interactive Interpreter' of the ngspice
     manual: http://ngspice.sourceforge.net/docs/ngspice26-manual.pdf
     """
@@ -387,8 +387,9 @@ def run_dc(*args, **kwargs):
     """Run a DC simulation on ngspice.
 
     The argument(s) are either:
+
     1. A single string containing the source(s) followed by their
-    start, stop and step values.
+       start, stop and step values.
     2. src, start, stop, step[, src2, start, stop, step]
     3. The arguments in 2. Specified as keyword arguments.
 
@@ -397,11 +398,12 @@ def run_dc(*args, **kwargs):
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
-    run_dc('v1 0 1 0.1')
-    run_dc('v2 0 1 1m v2 0 1 0.3')
-    run_dc('v1', 0, '1meg', '1k')
-    run_dc(src='v1', start=0, stop=1, step=0.1,
-           src2=v2, start=0, step=0.3, stop=1)
+
+        >>> run_dc('v1 0 1 0.1')
+        >>> run_dc('v2 0 1 1m v2 0 1 0.3')
+        >>> run_dc('v1', 0, '1meg', '1k')
+        >>> run_dc(src='v1', start=0, stop=1, step=0.1\\
+                   src2='v2', start2=0, step2=0.3, stop2=1)
     """
     parsed_args = __parse__('dc', *args, **kwargs)
     return send_command('dc ' + ' '.join(parsed_args))
@@ -409,27 +411,23 @@ def run_dc(*args, **kwargs):
 
 def run_ac(*args, **kwargs):
     """Run an AC simulation on ngspice.
+    
+    An AC simulation requires one to specify the start (`fstart`) and stop
+    (`fstop`) frequecies, the type of `variation` (dec/oct/lin) and the number of
+    points (`npoints`; per decade or octave if dec or oct are used)
 
     The argument(s) are either:
-    1. A single string containing dec/oct/lin(variation type),
-    nd (number of point per dec)/  no (number of points per octave)
-    np(number of points) followed by  fstart(frequency of start)
-    and fstop(frequency of stop)
 
-    2. Format: dec/oct/lin nd/op/np fstart fstop
-
+    1. A single string of the form '<variation> <npoints> <fstart> <fstop>'
+    2. variation, npoints, fstart, fstop
     3. The arguments in 2. Specified as keyword arguments.
-
-    dec/oct/lin are strings. nd/op/np, fstart and fstop can be
-    strings or floats If they are strings,they must contain only a
-    float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
 
-    run_ac('dec 10 1 10')
-    run_ac('dec 10 1k 10meg')
-    run_ac('dec', 10, '1k', '100k')
-    run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
+        >>> run_ac('dec 10 1 10')
+        >>> run_ac('dec 10 1k 10meg')
+        >>> run_ac('dec', 10, '1k', '100k')
+        >>> run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
     parsed_args = __parse__('ac', *args, **kwargs)
     return send_command('ac ' + ' '.join(parsed_args))
@@ -439,9 +437,10 @@ def run_tran(*args, **kwargs):
     """Run a TRAN simulation on ngspice.
 
     The argument(s) are either:
-    1. A single string contains tstep, tstop, tstart, tmax and uic
-    values. The value of tmax and uic are optional.
-    2. tstep tstop <tstart <tmax>> <uic>
+
+    1. A single string containing tstep, tstop, tstart, tmax and uic
+       values. The values of tmax and uic are optional.
+    2. tstep, tstop[, tstart, tmax, uic]
     3. The arguments in 2. Specified as keyword arguments.
 
     start, stop and step can be either strings or floats. If the are
@@ -449,10 +448,11 @@ def run_tran(*args, **kwargs):
     ngspice's scale factors and no spaces.
 
     Examples:
-    run_tran('1 10 0 11 ')
-    run_tran('1ns 10ns 0 11ns')
-    run_tran('1ns', 0, '10ns', '11ns')
-    run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
+
+        >>> run_tran('1 10 0 11 ')
+        >>> run_tran('1ns 10ns 0 11ns')
+        >>> run_tran('1ns', 0, '10ns', '11ns')
+        >>> run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
     parsed_args = __parse__('tran', *args, **kwargs)
     return send_command('tran ' + ' '.join(parsed_args))
@@ -467,13 +467,21 @@ def run_op():
 def clear_plots(*args):
     """Clear the specified plots names.
 
-    The arguments may be empty, a string, list or tuple.
+    The argument(s) are either:
+    
+    1. Empty, which will clear all plots.
+    2. Multiple arguments, each containing the name of a plot (a string).
+    3. A string containing comma separated names of the plots that need to be
+       deleted.
+    4. A list or tuple of strings contianing the plots that need to be deleted.
 
-    clear_plots()
-    clear_plots('dc dc2 dc3')
-    clear_plots(('dc1','dc2','dc3'))
-    clear_plots('dc1','dc2','dc3')
-    clear_plots(['dc1','dc2','dc3'])
+    Examples:
+
+        >>> clear_plots()
+        >>> clear_plots('dc dc2 dc3')
+        >>> clear_plots(('dc1','dc2','dc3'))
+        >>> clear_plots('dc1','dc2','dc3')
+        >>> clear_plots(['dc1','dc2','dc3'])
     """
     if len(args) == 0:
         clear_cmd = 'all'
@@ -522,7 +530,7 @@ def current_plot():
 def get_vector_names(plot_name=None):
     """Return a list of the names of the vectors in the given plot.
 
-    plot_name specifies the plot whose vectors need to be returned. If
+    `plot_name` specifies the plot whose vectors need to be returned. If
     it unspecified, the vector names from the current plot are
     returned.
     """
@@ -548,7 +556,7 @@ def get_vector_names(plot_name=None):
 def get_data(vector_arg, plot_arg=None):
     """Get the data in a vector as a numpy array.
 
-    vector_arg denotes the vector name
+    `vector_arg` denotes the vector name
     plot_agr denotes the plot name
     """
     if '.' in vector_arg:
@@ -588,9 +596,11 @@ def set_options(*args, **kwargs):
     """Pass simulator options to ngspice.
 
     Options may either be entered as a string or keyword arguments.
+    
     Examples:
-    set_options(trtol=1, temp=300)
-    set_options('trtol=1')
+
+        >>> set_options(trtol=1, temp=300)
+        >>> set_options('trtol=1')
     """
     for option in args:
         return send_command('option ' + str(option))
@@ -603,10 +613,11 @@ def load_netlist(netlist):
     """Load ngspice with the specified netlist.
 
     The argument netlist can be one of the following:
+
     1. The path to a file that contains the netlist.
     2. A list of strings where each string is one line of the netlist.
     3. A string containing the entire netlist with each line separated
-    by a newline character.
+       by a newline character.
 
     The function does not check if the netlist is valid. An invalid
     netlist may cause ngspice to crash.
