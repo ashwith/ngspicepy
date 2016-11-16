@@ -7,7 +7,8 @@
 ngspicepy
 *********
 
-Welcome to the documentation page for ngspicepy.
+Welcome to the documentation page for ngspicepy. If you're looking for the git
+repository, go to https://github.com/ashwith/ngspicepy
 
  .. toctree::
     :maxdepth: 2
