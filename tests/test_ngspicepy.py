@@ -1,22 +1,22 @@
-import sys
 import os
+import sys
 
-module_path = os.path.dirname(os.path.curdir + os.path.sep)
-sys.path.insert(0, os.path.abspath(module_path))
+from ctypes import c_char_p, cast, create_string_buffer, pointer
+from unittest import mock
 
-from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
-    c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
-    POINTER, Structure, cast, pointer
-
-import ngspicepy as ng
 
 import numpy as np
 
 import pytest
 
-from unittest import mock
 
-ret_val = ng.vector_info()
+module_path = os.path.dirname(os.path.curdir + os.path.sep)
+sys.path.insert(0, os.path.abspath(module_path))
+import ngspicepy as ng
+
+from ngspicepy.ngspicepy import check_sim_param, to_num, vector_info, xstr
+
+ret_val = vector_info()
 ret_val.v_name = cast(create_string_buffer(b"v-sweep"), c_char_p)
 ret_val.v_flags = 129
 ret_val.v_realdata = np.ctypeslib.as_ctypes(np.linspace(1, 10, 10))
@@ -39,6 +39,7 @@ class TestGetPlotNames:
         assert val == ['dc3', 'dc2', 'dc1', 'const']
         assert len(val) == 4
         ng.reset()
+
 
 class TestSendCommand:
     def test_send_command(self):
@@ -105,12 +106,13 @@ class TestGetData:
             ng.get_data('v-swoop', 'dc1')
 
     @mock.patch('ngspicepy.libngspice.ngGet_Vec_Info',
-            return_value=ret_val)
+                return_value=ret_val)
     def test_api_call(self, mock_get_info):
         ng.get_data('v-sweep')
         # mock_get_info.assert_called_once_with(create_string_buffer(b'v-sweep'))
         assert mock_get_info.called
         ng.reset()
+
 
 class TestGetAllData:
     def test_get_all_data(self):
@@ -120,6 +122,7 @@ class TestGetAllData:
         for i in val:
             assert type(i) == str
         ng.reset()
+
 
 class TestCurrentPlot:
 
@@ -136,12 +139,13 @@ class TestCurrentPlot:
         mock_CurPlot.assert_called_once_with()
         ng.reset()
 
+
 class TestGetVectorNames:
     def test_get_vector_names(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 0.1')
         val = ng. get_vector_names('dc1')
-        assert val == ['v1#branch', 'v2#branch',  'V(2)', 'V(1)', 'v-sweep']
+        assert val == ['v1#branch', 'v2#branch', 'V(2)', 'V(1)', 'v-sweep']
         ng.reset()
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
         ng.run_dc('v1 0 1 .1')
@@ -150,6 +154,7 @@ class TestGetVectorNames:
         with pytest.raises(ValueError):
             ng.get_vector_names('dca')
         ng.reset()
+
 
 class TestLoadNetlist:
 
@@ -212,6 +217,7 @@ class TestRunDC:
         ng.run_dc('v1 0 1 0.1 v2 0 2 0.2')
         ng.reset()
 
+
 class TestRunAC:
     def test_run_ac(self):
         ng.load_netlist(netlists_path + 'dc_ac_check.net')
@@ -240,6 +246,7 @@ class TestRunAC:
         assert mock_send_command.called
         ng.reset()
 
+
 class TestRunTran:
     def test_run_tran(self):
         ng.load_netlist(netlists_path + 'tran_check.net')
@@ -250,22 +257,23 @@ class TestRunTran:
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeStr(self, mock_send_command):
         ng.load_netlist(netlists_path + 'tran_check.net')
-        val = ng.run_tran('1u 1m 10u')
+        ng.run_tran('1u 1m 10u')
         assert mock_send_command.called
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'tran_check.net')
-        val = ng.run_tran('1u', '1m', '10u')
+        ng.run_tran('1u', '1m', '10u')
         assert mock_send_command.called
         ng.reset()
 
     @mock.patch('ngspicepy.libngspice.ngSpice_Command')
     def test_argtypeKWArgs(self, mock_send_command):
         ng.load_netlist(netlists_path + 'tran_check.net')
-        val = ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
+        ng.run_tran(tstart='10u', tstep='1u', tstop='1m')
         assert mock_send_command.called
         ng.reset()
+
 
 class TestClearPlots:
     def test_clear_plots(self):
@@ -287,23 +295,30 @@ class TestClearPlots:
         ng.clear_plots('dc1 dc2')
         val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == ['dc6', 'dc5', 'dc4','dc3','const']
+        assert val == ['dc6', 'dc5', 'dc4', 'dc3', 'const']
         ng.clear_plots(('dc6', 'dc5'))
         val = ng.get_plot_names()
         assert isinstance(val, list)
-        assert val == ['dc4','dc3','const']
-        ng.clear_plots(['dc3','dc4'])
+        assert val == ['dc4', 'dc3', 'const']
+        ng.clear_plots(['dc3', 'dc4'])
         val = ng.get_plot_names()
         assert isinstance(val, list)
         assert val == ['const']
         ng.reset()
-        
+        ng.run_dc('v1 0 1 0.2')
+        ng.run_dc('v1 0 1 0.2')
+        ng.run_dc('v1 0 1 0.2')
+        ng.clear_plots('dc1', 'dc2')
+        val = ng.get_plot_names()
+        assert val == ['dc3', 'const']
+
         with pytest.raises(TypeError):
             ng.load_netlist(netlists_path + 'dc_ac_check.net')
             ng.run_dc('v1 0 1 .3')
             ng.run_dc('v1 0 1 .3')
-            ng.clear_plots({'dc1 dc2':1})
+            ng.clear_plots({'dc1 dc2': 1})
         ng.reset()
+
 
 class TestReset:
     def test_reset(self):
@@ -317,10 +332,11 @@ class TestReset:
         assert isinstance(val, list)
         ng.reset()
 
+
 class TestXstr:
     def test_xstr(self):
         none = None
-        val = ng.xstr(none)
+        val = xstr(none)
         assert isinstance(val, str)
 
 
@@ -328,36 +344,36 @@ class TestToNum:
     def test_to_num(self):
         with pytest.raises(ValueError):
             num = 'a'
-            val = ng.to_num(num)
+            to_num(num)
 
 
 class TestCheckSimParam:
     def test_check_sim_param(self):
         start = 0
         stop = 1
-        is_good, val = ng.check_sim_param(start, stop)
+        is_good, val = check_sim_param(start, stop)
         assert is_good
 
         step = .1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert is_good
 
         step = 0
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size is zero"
 
         start = 2
         stop = 1
         step = .1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size > 0 but stop < start "
 
         start = 1
         stop = 2
         step = -.1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size < 0 but stop > start"
 
@@ -373,11 +389,11 @@ class TestParse:
 
         with pytest.raises(ValueError):
             ng.run_dc(src='v1', start=0, stop=1, step=.1,
-                    start2=0, stop2=1, step2=.1)
+                      start2=0, stop2=1, step2=.1)
 
         with pytest.raises(ValueError):
             ng.run_dc(src='v1', start=0, stop=1, step=.1,
-                    src2='v2', start2=0, stop2=1)
+                      src2='v2', start2=0, stop2=1)
 
         with pytest.raises(ValueError):
             ng.run_dc('v1 0 1 0 ')

@@ -1,22 +1,19 @@
+import os
 import string
-
-
 from collections import OrderedDict
 from ctypes import c_bool, c_char_p, c_double, c_int, c_short,\
     c_void_p, cast, cdll, CFUNCTYPE, create_string_buffer,\
     POINTER, Structure
-import os
 from queue import Queue
 
 import numpy as np
 
-import string
 # Load the ngspice shared library.
 # TODO: Figure out the path intelligently
 libpath = "/usr/local/lib/libngspice.so.0"
 if os.path.isfile(libpath):
     libngspice = cdll.LoadLibrary(libpath)
-else:
+else:  # pragma: no cover
     raise SystemError('Shared library libngspice.so not found in ' + libpath)
 
 send_char_queue = Queue()
@@ -123,7 +120,9 @@ class vecvaluesall(Structure):
 
 # Callback functions
 @CFUNCTYPE(c_int, c_int, c_bool, c_bool, c_int, c_void_p)
-def ControlledExit(exit_status, is_unload, is_quit, lib_id, ret_ptr):
+def ControlledExit(exit_status, is_unload, is_quit,
+                   lib_id, ret_ptr):  # pragma: no cover
+
     if not exit_status == 0 or not is_quit:
         raise SystemError('Invalid command or netlist.')
     return 0
@@ -136,13 +135,14 @@ def SendChar(output, lib_id, ret_ptr):
     clean_output = "".join(output.decode().split('*'))
     if 'stdout' in clean_output:
         to_print = ' '.join(clean_output.split(' ')[1:]).strip()
-        if "ngspice" in to_print and "done" in to_print:
+        if "ngspice" in to_print and "done" in to_print:  # pragma: no cover
             send_char_queue.put("Quitting ngspice")
-        elif "Note: 'quit' asks for detaching ngspice.dll" in to_print:
+        elif "Note: 'quit' asks for detaching ngspice.dll"\
+                in to_print:  # pragma: no cover
             pass
         elif to_print not in string.whitespace:
             send_char_queue.put(to_print)
-    elif 'stderr' in clean_output:
+    elif 'stderr' in clean_output:  # pragma: no cover
         raise SystemError(" ".join(clean_output.split(' ')[1:]))
     return 0
 
@@ -205,7 +205,7 @@ def check_sim_param(start, stop, step=None):
     return (True, "All good")
 
 
-def parse(sim_cmd, *args, **kwargs):
+def __parse__(sim_cmd, *args, **kwargs):
     """ Performs the parsing function for the ac,dc and tran cases."""
 
     cmd_dc = OrderedDict()
@@ -373,8 +373,8 @@ def run_dc(*args, **kwargs):
     run_dc(src='v1', start=0, stop=1, step=0.1,
            src2=v2, start=0, step=0.3, stop=1)
     """
-    parsed_args = parse('dc', *args, **kwargs)
-    return send_command('dc '+' '.join(parsed_args))
+    parsed_args = __parse__('dc', *args, **kwargs)
+    return send_command('dc ' + ' '.join(parsed_args))
 
 
 def run_ac(*args, **kwargs):
@@ -401,8 +401,8 @@ def run_ac(*args, **kwargs):
     run_ac('dec', 10, '1k', '100k')
     run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
-    parsed_args = parse('ac', *args, **kwargs)
-    return send_command('ac '+' '.join(parsed_args))
+    parsed_args = __parse__('ac', *args, **kwargs)
+    return send_command('ac ' + ' '.join(parsed_args))
 
 
 def run_tran(*args, **kwargs):
@@ -425,7 +425,7 @@ def run_tran(*args, **kwargs):
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
 
-    parsed_args = parse('tran', *args, **kwargs)
+    parsed_args = __parse__('tran', *args, **kwargs)
     return send_command('tran ' + ' '.join(parsed_args))
 
 
@@ -457,7 +457,7 @@ def clear_plots(*args):
         else:
             raise TypeError('Type must be string,list or tuple')
     else:
-        clear_cmd = ' '.join(args[0])
+        clear_cmd = ' '.join(args)
     return send_command('destroy ' + clear_cmd)
 
 
@@ -536,17 +536,14 @@ def get_data(vector_arg, plot_arg=None):
 
     info = libngspice.ngGet_Vec_Info(
         create_string_buffer(vector_arg.encode()))
-    if info.contents.v_length <= 0:
-        raise ValueError("Incorrect vector name")
-    else:
-        if info.contents.v_flags & v_flags.VF_REAL != 0:
-            data = np.ctypeslib.as_array(info.contents.v_realdata,
-                                         shape=(info.contents.v_length,))
-        elif info.contents.v_flags & v_flags.VF_COMPLEX != 0:
-            data = np.ctypeslib.as_array(
-                info.contents.v_compdata,
-                shape=(info.contents.v_length,)).view('complex128')
-        return data
+    if info.contents.v_flags & v_flags.VF_REAL != 0:
+        data = np.ctypeslib.as_array(info.contents.v_realdata,
+                                     shape=(info.contents.v_length,))
+    elif info.contents.v_flags & v_flags.VF_COMPLEX != 0:
+        data = np.ctypeslib.as_array(
+            info.contents.v_compdata,
+            shape=(info.contents.v_length,)).view('complex128')
+    return data
 
 
 def get_all_data(plot_name=None):
@@ -572,11 +569,8 @@ def set_options(*args, **kwargs):
     for option in args:
         return send_command('option ' + str(option))
     for option in kwargs:
-        if kwargs[option] is []:
-            return send_command('option ' + option)
-        else:
-            return send_command('option ' + option + '=' +
-                                str(kwargs[option]))
+        return send_command('option ' + option + '=' +
+                            str(kwargs[option]))
 
 
 def load_netlist(netlist):

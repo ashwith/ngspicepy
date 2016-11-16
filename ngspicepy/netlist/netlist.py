@@ -1,5 +1,6 @@
 import ngspicepy as ng
 
+from ngspicepy.ngspicepy import __parse__
 import os
 
 import string
@@ -57,7 +58,7 @@ class Netlist(object):
         if self.sim_type == 'op':
             self.parsed_args = []
         else:
-            self.parsed_args = ng.parse(sim_type, *args, **kwargs)
+            self.parsed_args = __parse__(sim_type, *args, **kwargs)
 
     def run(self):
         """Runs the simulation.
