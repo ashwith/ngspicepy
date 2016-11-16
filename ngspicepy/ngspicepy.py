@@ -205,7 +205,7 @@ def check_sim_param(start, stop, step=None):
     return (True, "All good")
 
 
-def parse(sim_cmd, *args, **kwargs):
+def __parse__(sim_cmd, *args, **kwargs):
     """ Performs the parsing function for the ac,dc and tran cases."""
 
     cmd_dc = OrderedDict()
@@ -373,7 +373,7 @@ def run_dc(*args, **kwargs):
     run_dc(src='v1', start=0, stop=1, step=0.1,
            src2=v2, start=0, step=0.3, stop=1)
     """
-    parsed_args = parse('dc', *args, **kwargs)
+    parsed_args = __parse__('dc', *args, **kwargs)
     return send_command('dc ' + ' '.join(parsed_args))
 
 
@@ -401,7 +401,7 @@ def run_ac(*args, **kwargs):
     run_ac('dec', 10, '1k', '100k')
     run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
-    parsed_args = parse('ac', *args, **kwargs)
+    parsed_args = __parse__('ac', *args, **kwargs)
     return send_command('ac ' + ' '.join(parsed_args))
 
 
@@ -425,7 +425,7 @@ def run_tran(*args, **kwargs):
     run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
     """
 
-    parsed_args = parse('tran', *args, **kwargs)
+    parsed_args = __parse__('tran', *args, **kwargs)
     return send_command('tran ' + ' '.join(parsed_args))
 
 

@@ -14,7 +14,9 @@ module_path = os.path.dirname(os.path.curdir + os.path.sep)
 sys.path.insert(0, os.path.abspath(module_path))
 import ngspicepy as ng
 
-ret_val = ng.vector_info()
+from ngspicepy.ngspicepy import check_sim_param, to_num, vector_info, xstr
+
+ret_val = vector_info()
 ret_val.v_name = cast(create_string_buffer(b"v-sweep"), c_char_p)
 ret_val.v_flags = 129
 ret_val.v_realdata = np.ctypeslib.as_ctypes(np.linspace(1, 10, 10))
@@ -334,7 +336,7 @@ class TestReset:
 class TestXstr:
     def test_xstr(self):
         none = None
-        val = ng.xstr(none)
+        val = xstr(none)
         assert isinstance(val, str)
 
 
@@ -342,36 +344,36 @@ class TestToNum:
     def test_to_num(self):
         with pytest.raises(ValueError):
             num = 'a'
-            ng.to_num(num)
+            to_num(num)
 
 
 class TestCheckSimParam:
     def test_check_sim_param(self):
         start = 0
         stop = 1
-        is_good, val = ng.check_sim_param(start, stop)
+        is_good, val = check_sim_param(start, stop)
         assert is_good
 
         step = .1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert is_good
 
         step = 0
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size is zero"
 
         start = 2
         stop = 1
         step = .1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size > 0 but stop < start "
 
         start = 1
         stop = 2
         step = -.1
-        is_good, val = ng.check_sim_param(start, stop, step)
+        is_good, val = check_sim_param(start, stop, step)
         assert not is_good
         assert val == "step size < 0 but stop > start"
 
