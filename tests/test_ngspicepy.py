@@ -400,3 +400,4 @@ class TestSetOptions:
         assert isinstance(val, list)
         val = ng.set_options('')
         assert isinstance(val, list)
+        val = ng.set_options(temp=None)
