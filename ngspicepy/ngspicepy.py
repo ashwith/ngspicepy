@@ -166,7 +166,6 @@ def SendChar(output, lib_id, ret_ptr):
         else:
             send_char_queue.put(clean_output)
     return 0
-    return 0
 
 
 @CFUNCTYPE(c_int, c_char_p, c_int, c_void_p)
