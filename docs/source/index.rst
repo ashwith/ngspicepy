@@ -17,6 +17,7 @@ repository, go to https://github.com/ashwith/ngspicepy
     installation
     quickstart
     knownissues
+    modules
 
 
 
