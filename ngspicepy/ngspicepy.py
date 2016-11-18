@@ -1,3 +1,4 @@
+"""The API wrapper for ngspice's shared library."""
 import os
 import string
 from collections import OrderedDict
@@ -24,6 +25,8 @@ is_simulating = False
 # enums for v_type.
 # See src/include/ngspice/sim.h in the ngspice source.
 class v_types:
+    """Definition for the values for v_types."""
+
     SV_NOTYPE         = 0
     SV_TIME           = 1
     SV_FREQUENCY      = 2
@@ -50,6 +53,8 @@ class v_types:
 # enums for v_flags.
 # See src/include/ngspice/dvec.h in the ngspice source.
 class v_flags:
+    """Bit fields for v_flags."""
+
     VF_REAL = (1 << 0)
     VF_COMPLEX = (1 << 1)
     VF_ACCUM = (1 << 2)
@@ -74,11 +79,15 @@ scale_factors['f'] = 'e-15'
 
 # C structs that are required by the shared library
 class ngcomplex_t(Structure):
+    """ctypes definition for struct ngcomplex_t."""
+
     _fields_ = [("cx_real", c_double),
                 ("cx_imag", c_double)]
 
 
 class vector_info(Structure):
+    """ctypes definition for struct vector_info."""
+
     _fields_ = [("v_name", c_char_p),
                 ("v_type", c_int),
                 ("v_flags", c_short),
@@ -88,6 +97,8 @@ class vector_info(Structure):
 
 
 class vecinfo(Structure):
+    """ctypes definition for struct vecinfo."""
+
     _fields_ = [("number", c_int),
                 ("vecname", c_char_p),
                 ("is_real", c_bool),
@@ -96,6 +107,8 @@ class vecinfo(Structure):
 
 
 class vecinfoall(Structure):
+    """ctypes definition for struct vecinfoall."""
+
     _fields_ = [("name", c_char_p),
                 ("title", c_char_p),
                 ("date", c_char_p),
@@ -105,6 +118,8 @@ class vecinfoall(Structure):
 
 
 class vecvalues(Structure):
+    """ctypes definition for struct vecvalues."""
+
     _fields_ = [("name", c_char_p),
                 ("creal", c_double),
                 ("cimag", c_double),
@@ -113,6 +128,8 @@ class vecvalues(Structure):
 
 
 class vecvaluesall(Structure):
+    """ctypes definition for struct vecvaluesall."""
+
     _fields_ = [("veccount", c_int),
                 ("vecindex", c_int),
                 ("vecsa", POINTER(POINTER(vecvalues)))]
@@ -122,7 +139,7 @@ class vecvaluesall(Structure):
 @CFUNCTYPE(c_int, c_int, c_bool, c_bool, c_int, c_void_p)
 def ControlledExit(exit_status, is_unload, is_quit,
                    lib_id, ret_ptr):  # pragma: no cover
-
+    """Callback function called when one exits from ngspice."""
     if not exit_status == 0 or not is_quit:
         raise SystemError('Invalid command or netlist.')
     return 0
@@ -130,6 +147,7 @@ def ControlledExit(exit_status, is_unload, is_quit,
 
 @CFUNCTYPE(c_int, c_char_p, c_int, c_void_p)
 def SendChar(output, lib_id, ret_ptr):
+    """Callback function that captures what's sent by ngspice to stdout."""
     global send_char_queue
 
     clean_output = "".join(output.decode().split('*'))
@@ -149,6 +167,7 @@ def SendChar(output, lib_id, ret_ptr):
 
 @CFUNCTYPE(c_int, c_char_p, c_int, c_void_p)
 def SendStat(sim_stat, lib_id, ret_ptr):
+    """Callback function that captures status messages."""
     send_stat_queue.put(sim_stat.decode())
     return 0
 
@@ -173,6 +192,7 @@ libngspice.ngSpice_AllVecs.restype  = POINTER(c_char_p)
 
 # Utility functions
 def xstr(string):
+    """Like str(), except that None is converted to ''."""
     if string is None:
         return ''
     else:
@@ -180,6 +200,16 @@ def xstr(string):
 
 
 def to_num(ng_number):
+    """Convert an ngspice number to a float.
+    
+    ng_number - a string containing a number that ngspice recognizes. This can
+    either be a float or a number with the appropriate scale factor.
+    
+    Examples:
+
+    to_num('1.3')
+    to_num('1Meg')
+    """
     num_text = ng_number.lower()
     for scale_factor in scale_factors:
         if scale_factor in num_text:
@@ -194,6 +224,7 @@ def to_num(ng_number):
 
 
 def check_sim_param(start, stop, step=None):
+    """Check if start < stop if step is positive and start > stop otherwise."""
     if step is None:
         step = 1
     if step == 0:
@@ -206,8 +237,7 @@ def check_sim_param(start, stop, step=None):
 
 
 def __parse__(sim_cmd, *args, **kwargs):
-    """ Performs the parsing function for the ac,dc and tran cases."""
-
+    """Parse the arguments and check for correctness depending on the simulation chosen."""
     cmd_dc = OrderedDict()
     cmd_dc['src'] = ""
     cmd_dc['start'] = ""
@@ -337,7 +367,7 @@ def __parse__(sim_cmd, *args, **kwargs):
 def send_command(command):
     """Send a command to ngspice.
 
-    The argument command is string that contains a valid ngspice
+    The argument `command` is string that contains a valid ngspice
     command. See the chapter 'Interactive Interpreter' of the ngspice
     manual: http://ngspice.sourceforge.net/docs/ngspice26-manual.pdf
     """
@@ -354,11 +384,12 @@ def send_command(command):
 
 
 def run_dc(*args, **kwargs):
-    """Run a DC simulation on ngspice
+    """Run a DC simulation on ngspice.
 
     The argument(s) are either:
+
     1. A single string containing the source(s) followed by their
-    start, stop and step values.
+       start, stop and step values.
     2. src, start, stop, step[, src2, start, stop, step]
     3. The arguments in 2. Specified as keyword arguments.
 
@@ -367,51 +398,49 @@ def run_dc(*args, **kwargs):
     float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
-    run_dc('v1 0 1 0.1')
-    run_dc('v2 0 1 1m v2 0 1 0.3')
-    run_dc('v1', 0, '1meg', '1k')
-    run_dc(src='v1', start=0, stop=1, step=0.1,
-           src2=v2, start=0, step=0.3, stop=1)
+
+        >>> run_dc('v1 0 1 0.1')
+        >>> run_dc('v2 0 1 1m v2 0 1 0.3')
+        >>> run_dc('v1', 0, '1meg', '1k')
+        >>> run_dc(src='v1', start=0, stop=1, step=0.1\\
+                   src2='v2', start2=0, step2=0.3, stop2=1)
     """
     parsed_args = __parse__('dc', *args, **kwargs)
     return send_command('dc ' + ' '.join(parsed_args))
 
 
 def run_ac(*args, **kwargs):
-    """Run a AC simulation on ngspice
+    """Run an AC simulation on ngspice.
+    
+    An AC simulation requires one to specify the start (`fstart`) and stop
+    (`fstop`) frequecies, the type of `variation` (dec/oct/lin) and the number of
+    points (`npoints`; per decade or octave if dec or oct are used)
 
     The argument(s) are either:
-    1. A single string containing dec/oct/lin(variation type),
-    nd (number of point per dec)/  no (number of points per octave)
-    np(number of points) followed by  fstart(frequency of start)
-    and fstop(frequency of stop)
 
-    2. Format: dec/oct/lin nd/op/np fstart fstop
-
+    1. A single string of the form '<variation> <npoints> <fstart> <fstop>'
+    2. variation, npoints, fstart, fstop
     3. The arguments in 2. Specified as keyword arguments.
-
-    dec/oct/lin are strings. nd/op/np, fstart and fstop can be
-    strings or floats If they are strings,they must contain only a
-    float and optionally one of ngspice's scale factors and no spaces.
 
     Examples:
 
-    run_ac('dec 10 1 10')
-    run_ac('dec 10 1k 10meg')
-    run_ac('dec', 10, '1k', '100k')
-    run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
+        >>> run_ac('dec 10 1 10')
+        >>> run_ac('dec 10 1k 10meg')
+        >>> run_ac('dec', 10, '1k', '100k')
+        >>> run_ac(variation='dec', npoints=0, fstart=1, fstop=10)
     """
     parsed_args = __parse__('ac', *args, **kwargs)
     return send_command('ac ' + ' '.join(parsed_args))
 
 
 def run_tran(*args, **kwargs):
-    """Run a TRAN simulation on ngspice
+    """Run a TRAN simulation on ngspice.
 
     The argument(s) are either:
-    1. A single string contains tstep, tstop, tstart, tmax and uic
-    values. The value of tmax and uic are optional.
-    2. tstep tstop <tstart <tmax>> <uic>
+
+    1. A single string containing tstep, tstop, tstart, tmax and uic
+       values. The values of tmax and uic are optional.
+    2. tstep, tstop[, tstart, tmax, uic]
     3. The arguments in 2. Specified as keyword arguments.
 
     start, stop and step can be either strings or floats. If the are
@@ -419,33 +448,40 @@ def run_tran(*args, **kwargs):
     ngspice's scale factors and no spaces.
 
     Examples:
-    run_tran('1 10 0 11 ')
-    run_tran('1ns 10ns 0 11ns')
-    run_tran('1ns', 0, '10ns', '11ns')
-    run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
-    """
 
+        >>> run_tran('1 10 0 11 ')
+        >>> run_tran('1ns 10ns 0 11ns')
+        >>> run_tran('1ns', 0, '10ns', '11ns')
+        >>> run_tran(tstep=1, tstop=10, tstart=0, tmax=11)
+    """
     parsed_args = __parse__('tran', *args, **kwargs)
     return send_command('tran ' + ' '.join(parsed_args))
 
 
 def run_op():
-    """The inclusion of this line in an input file directs
-     ngspice to determine the dc operating point of the
-     circuit """
+    """Run operating point analysis."""
     op_result = send_command('op')
     return op_result
 
 
 def clear_plots(*args):
-    """ Clears the specified plots names.
+    """Clear the specified plots names.
 
-    The arguments passed may be empty, a string, list or tuple.
+    The argument(s) are either:
+    
+    1. Empty, which will clear all plots.
+    2. Multiple arguments, each containing the name of a plot (a string).
+    3. A string containing comma separated names of the plots that need to be
+       deleted.
+    4. A list or tuple of strings contianing the plots that need to be deleted.
 
-    clear_plots()
-    clear_plots('dc dc2 dc3')
-    clear_plots(('dc1','dc2','dc3'))
-    clear_plots(['dc1','dc2','dc3'])
+    Examples:
+
+        >>> clear_plots()
+        >>> clear_plots('dc dc2 dc3')
+        >>> clear_plots(('dc1','dc2','dc3'))
+        >>> clear_plots('dc1','dc2','dc3')
+        >>> clear_plots(['dc1','dc2','dc3'])
     """
     if len(args) == 0:
         clear_cmd = 'all'
@@ -486,8 +522,7 @@ def get_plot_names():
 
 
 def current_plot():
-    """Returns the name of the current plot."""
-
+    """Return the name of the current plot."""
     plot_name = libngspice.ngSpice_CurPlot()
     return (plot_name.decode())
 
@@ -495,7 +530,7 @@ def current_plot():
 def get_vector_names(plot_name=None):
     """Return a list of the names of the vectors in the given plot.
 
-    plot_name specifies the plot whose vectors need to be returned. If
+    `plot_name` specifies the plot whose vectors need to be returned. If
     it unspecified, the vector names from the current plot are
     returned.
     """
@@ -519,11 +554,11 @@ def get_vector_names(plot_name=None):
 
 
 def get_data(vector_arg, plot_arg=None):
-    """Enables the user to get the data available in a given vector
+    """Get the data in a vector as a numpy array.
 
-    vector_arg denotes the vector name
-    plot_agr denotes the plot name """
-
+    `vector_arg` denotes the vector name
+    plot_agr denotes the plot name
+    """
     if '.' in vector_arg:
         plot_name, vector_name = vector_arg.split('.')
         if vector_name not in get_vector_names(plot_name):
@@ -548,7 +583,6 @@ def get_data(vector_arg, plot_arg=None):
 
 def get_all_data(plot_name=None):
     """Return a dictionary of all vectors in the specified plot."""
-
     vector_names = get_vector_names(plot_name)
 
     vector_data = {}
@@ -559,12 +593,14 @@ def get_all_data(plot_name=None):
 
 
 def set_options(*args, **kwargs):
-    """Passes simulator options to ngspice.
+    """Pass simulator options to ngspice.
 
     Options may either be entered as a string or keyword arguments.
+    
     Examples:
-    set_options(trtol=1, temp=300)
-    set_options('trtol=1')
+
+        >>> set_options(trtol=1, temp=300)
+        >>> set_options('trtol=1')
     """
     for option in args:
         return send_command('option ' + str(option))
@@ -577,15 +613,15 @@ def load_netlist(netlist):
     """Load ngspice with the specified netlist.
 
     The argument netlist can be one of the following:
+
     1. The path to a file that contains the netlist.
     2. A list of strings where each string is one line of the netlist.
     3. A string containing the entire netlist with each line separated
-    by a newline character.
+       by a newline character.
 
     The function does not check if the netlist is valid. An invalid
     netlist may cause ngspice to crash.
     """
-
     if type(netlist) == str:
         if os.path.isfile(netlist):
             return send_command('source ' + netlist)
