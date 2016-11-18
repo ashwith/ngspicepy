@@ -64,9 +64,7 @@ If you want to get all of the data,
 .. code:: python
 
     vecs_data = get_all_data()
- 
-Netlist
--------
+
 
 Using the Netlist class
 -----------------------
