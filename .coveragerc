@@ -1,5 +1,0 @@
-[report]
-
-omit =
-    */python?.?/*
-    *__init__*

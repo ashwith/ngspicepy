@@ -1,0 +1,588 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ngspicepy package &mdash; ngspicepy 0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ngspicepy 0 documentation" href="index.html"/>
+        <link rel="up" title="ngspicepy" href="modules.html"/>
+        <link rel="next" title="ngspicepy.netlist package" href="ngspicepy.netlist.html"/>
+        <link rel="prev" title="ngspicepy" href="modules.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ngspicepy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="knownissues.html">Known Issues</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">ngspicepy</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ngspicepy package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-ngspicepy">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ngspicepy">ngspicepy</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ngspicepy.netlist.html">ngspicepy.netlist package</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ngspicepy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">ngspicepy</a> &raquo;</li>
+      
+    <li>ngspicepy package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ngspicepy-package">
+<h1>ngspicepy package<a class="headerlink" href="#ngspicepy-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-ngspicepy">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ngspicepy" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ngspicepy">
+<h3>ngspicepy<a class="headerlink" href="#ngspicepy" title="Permalink to this headline">¶</a></h3>
+<p>A python wrapper for ngspice.</p>
+<p>ngspicepy as a python library for ngspice. It provides python wrappers for
+ngspice&#8217;s C API along with other useful functions. This allows one to run SPICE
+simulations and get the data as numpy as arrays directly from python instead of
+having to use files to use the data in python. Python has better tools to
+process data and plot relavent results. Thus ngspicepy gives a bridge between
+ngspice&#8217;s powerful simulator and python.</p>
+<p>The library can be used in two ways.</p>
+<ol class="arabic simple">
+<li>Directly using the functions provided by ngspicepy.</li>
+<li>Using the Netlist class.</li>
+</ol>
+<dl class="function">
+<dt id="ngspicepy.send_command">
+<code class="descclassname">ngspicepy.</code><code class="descname">send_command</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#send_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.send_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a command to ngspice.</p>
+<p>The argument <cite>command</cite> is string that contains a valid ngspice
+command. See the chapter &#8216;Interactive Interpreter&#8217; of the ngspice
+manual: <a class="reference external" href="http://ngspice.sourceforge.net/docs/ngspice26-manual.pdf">http://ngspice.sourceforge.net/docs/ngspice26-manual.pdf</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.run_dc">
+<code class="descclassname">ngspicepy.</code><code class="descname">run_dc</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#run_dc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.run_dc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a DC simulation on ngspice.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd><ol class="first last arabic simple">
+<li>A single string containing the source(s) followed by their
+start, stop and step values.</li>
+<li>src, start, stop, step[, src2, start, stop, step]</li>
+</ol>
+</dd>
+<dt><code class="docutils literal"><span class="pre">**kwargs</span></code></dt>
+<dd>The arguments specified as keyword arugments</dd>
+</dl>
+<p class="last">src and src2 must be strings. start, stop and step can be either
+strings or floats. If they are strings, they must contain only a
+float and optionally one of ngspice&#8217;s scale factors and no spaces.</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">run_dc</span><span class="p">(</span><span class="s1">&#39;v1 0 1 0.1&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_dc</span><span class="p">(</span><span class="s1">&#39;v2 0 1 1m v2 0 1 0.3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_dc</span><span class="p">(</span><span class="s1">&#39;v1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;1meg&#39;</span><span class="p">,</span> <span class="s1">&#39;1k&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_dc</span><span class="p">(</span><span class="n">src</span><span class="o">=</span><span class="s1">&#39;v1&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span>\\
+<span class="go">           src2=&#39;v2&#39;, start2=0, step2=0.3, stop2=1)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.run_ac">
+<code class="descclassname">ngspicepy.</code><code class="descname">run_ac</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#run_ac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.run_ac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run an AC simulation on ngspice.</p>
+<p>An AC simulation requires one to specify the start (<cite>fstart</cite>) and stop
+(<cite>fstop</cite>) frequecies, the type of <cite>variation</cite> (dec/oct/lin) and the number
+of
+points (<cite>npoints</cite>; per decade or octave if dec or oct are used)</p>
+<dl class="docutils">
+<dt>Parameters </dt>
+<dd><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd>A single string of the form &#8216;&lt;variation&gt; &lt;npoints&gt; &lt;fstart&gt; &lt;fstop&gt;&#8217;</dd>
+<dt><code class="docutils literal"><span class="pre">*kwargs</span></code></dt>
+<dd>The arguements in variation, npoints, fstart or fstop specified as
+keyword arguments</dd>
+</dl>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">run_ac</span><span class="p">(</span><span class="s1">&#39;dec 10 1 10&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_ac</span><span class="p">(</span><span class="s1">&#39;dec 10 1k 10meg&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_ac</span><span class="p">(</span><span class="s1">&#39;dec&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;1k&#39;</span><span class="p">,</span> <span class="s1">&#39;100k&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_ac</span><span class="p">(</span><span class="n">variation</span><span class="o">=</span><span class="s1">&#39;dec&#39;</span><span class="p">,</span> <span class="n">npoints</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fstart</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fstop</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.run_tran">
+<code class="descclassname">ngspicepy.</code><code class="descname">run_tran</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#run_tran"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.run_tran" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a TRAN simulation on ngspice.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd>1. A single string containing tstep, tstop, tstart, tmax and uic
+values.
+2. The values of tmax and uic are optional.
+3. tstep, tstop[, tstart, tmax, uic]</dd>
+<dt><code class="docutils literal"><span class="pre">**kwargs</span></code></dt>
+<dd>The arguments in 2 specified as keyword arguments.</dd>
+</dl>
+<p class="last">start, stop and step can be either strings or floats. If they are string,
+they must contain only a float and optionally one of the ngspice&#8217;s scale
+factor ans no spaces.</p>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">run_tran</span><span class="p">(</span><span class="s1">&#39;1 10 0 11 &#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_tran</span><span class="p">(</span><span class="s1">&#39;1ns 10ns 0 11ns&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_tran</span><span class="p">(</span><span class="s1">&#39;1ns&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;10ns&#39;</span><span class="p">,</span> <span class="s1">&#39;11ns&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">run_tran</span><span class="p">(</span><span class="n">tstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">tstart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmax</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.run_op">
+<code class="descclassname">ngspicepy.</code><code class="descname">run_op</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#run_op"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.run_op" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run operating point analysis.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.get_plot_names">
+<code class="descclassname">ngspicepy.</code><code class="descname">get_plot_names</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#get_plot_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.get_plot_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of plot names.</p>
+<p>A plot is the name for a group of vectors.</p>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd>A DC simulation run right after ngspice is loaded creates a plot called
+dc1 which contains the vectors generated by the DC simulation.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.current_plot">
+<code class="descclassname">ngspicepy.</code><code class="descname">current_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#current_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.current_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the current plot.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.get_vector_names">
+<code class="descclassname">ngspicepy.</code><code class="descname">get_vector_names</code><span class="sig-paren">(</span><em>plot_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#get_vector_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.get_vector_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of the vectors in the given plot.</p>
+<p>Parameter:
+plot_name : str
+specifies the plot whose vectors need to be returned. If it
+unspecified, the vector names from the current plot are returned.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.get_data">
+<code class="descclassname">ngspicepy.</code><code class="descname">get_data</code><span class="sig-paren">(</span><em>vector_arg</em>, <em>plot_arg=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data in a vector as a numpy array.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>vector_arg</dt>
+<dd>denotes the vector name</dd>
+<dt>plot_agr</dt>
+<dd>denotes the plot name</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.get_all_data">
+<code class="descclassname">ngspicepy.</code><code class="descname">get_all_data</code><span class="sig-paren">(</span><em>plot_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#get_all_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.get_all_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of all vectors in the specified plot.</p>
+<dl class="docutils">
+<dt>Parameter:</dt>
+<dd><dl class="first last docutils">
+<dt>plot_name</dt>
+<dd>denotes the plot name</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.set_options">
+<code class="descclassname">ngspicepy.</code><code class="descname">set_options</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#set_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass simulator options to ngspice.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd>Options can be entered as a string</dd>
+<dt><code class="docutils literal"><span class="pre">**kwargs</span></code></dt>
+<dd>Options can be entered as keyword arguments.</dd>
+</dl>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">set_options</span><span class="p">(</span><span class="n">trtol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">set_options</span><span class="p">(</span><span class="s1">&#39;trtol=1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.load_netlist">
+<code class="descclassname">ngspicepy.</code><code class="descname">load_netlist</code><span class="sig-paren">(</span><em>netlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#load_netlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.load_netlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load ngspice with the specified netlist.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first docutils">
+<dt>netlist</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><ol class="first last arabic simple">
+<li>The path to a file that contains the netlist.</li>
+<li>A list of strings where each string is one line of the netlist.</li>
+<li>A string containing the entire netlist with each line separated by a
+newline character.</li>
+</ol>
+</dd>
+</dl>
+<p class="last">The function does not check if the netlist is valid. An invalid
+netlist may cause ngspice to crash.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="ngspicepy.Netlist">
+<em class="property">class </em><code class="descclassname">ngspicepy.</code><code class="descname">Netlist</code><span class="sig-paren">(</span><em>netlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class that represents SPICE netlists.</p>
+<dl class="method">
+<dt id="ngspicepy.Netlist.get_current_plot">
+<code class="descname">get_current_plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.get_current_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.get_current_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the latest plot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.get_plots">
+<code class="descname">get_plots</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.get_plots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.get_plots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of plot names.</p>
+<p>A plot is the name for a group of vectors.</p>
+<dl class="docutils">
+<dt>Example:</dt>
+<dd>A DC simulation run right after ngspice is loaded creates a plot
+called dc1 which contains the vectors generated by the DC
+simulation.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.get_vector">
+<code class="descname">get_vector</code><span class="sig-paren">(</span><em>vector_name</em>, <em>plot_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.get_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.get_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable the user to get the data available in a given vector.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>vector_arg</dt>
+<dd>It specifies name of the vector.</dd>
+<dt>plot_agr</dt>
+<dd>It specifies the name of the plot.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.get_vector_names">
+<code class="descname">get_vector_names</code><span class="sig-paren">(</span><em>plot_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.get_vector_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.get_vector_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the names of the vectors in the given plot.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>plot_name</dt>
+<dd>It specifies the plot whose vectors need to be returned. If it
+unspecified, the vector names from the current plot are
+returned.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.get_vectors">
+<code class="descname">get_vectors</code><span class="sig-paren">(</span><em>plot_name=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.get_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.get_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary of all vectors in the specified plot.</p>
+<dl class="docutils">
+<dt>Parameter:</dt>
+<dd><dl class="first last docutils">
+<dt>plot_name</dt>
+<dd>It specifies the name of the plot.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the simulation.</p>
+<p>Depending on the arguments set in the set_simu() this function simply
+run that simulation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ngspicepy.Netlist.setup_sim">
+<code class="descname">setup_sim</code><span class="sig-paren">(</span><em>sim_type</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/netlist/netlist.html#Netlist.setup_sim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.Netlist.setup_sim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set up the simulation.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt>sim_type</dt>
+<dd>The type of the simulation</dd>
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd>The simulation parameters as arguments</dd>
+<dt><code class="docutils literal"><span class="pre">**kwargs</span></code></dt>
+<dd>The simulation parameters as keyword arguments</dd>
+</dl>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">setup_sim</span><span class="p">(</span><span class="s1">&#39;dc&#39;</span><span class="p">,</span><span class="s1">&#39;v1 0 1 .3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">setup_sim</span><span class="p">(</span><span class="s1">&#39;ac&#39;</span><span class="p">,</span><span class="s1">&#39;dec 10 1 10&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">setup_sim</span><span class="p">(</span><span class="s1">&#39;tran&#39;</span><span class="p">,</span><span class="s1">&#39;1 10&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.clear_plots">
+<code class="descclassname">ngspicepy.</code><code class="descname">clear_plots</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#clear_plots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.clear_plots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the specified plots names.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><dl class="first last docutils">
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd><ol class="first last arabic simple">
+<li>Empty, which will clear all plots.</li>
+<li>Multiple arguments, each containing the name of a plot (a string).</li>
+<li>A string containing comma separated names of the plots that need to
+be deleted.</li>
+<li>A list or tuple of strings contianing the plots that need to be
+deleted.</li>
+</ol>
+</dd>
+</dl>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">clear_plots</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_plots</span><span class="p">(</span><span class="s1">&#39;dc dc2 dc3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_plots</span><span class="p">((</span><span class="s1">&#39;dc1&#39;</span><span class="p">,</span><span class="s1">&#39;dc2&#39;</span><span class="p">,</span><span class="s1">&#39;dc3&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_plots</span><span class="p">(</span><span class="s1">&#39;dc1&#39;</span><span class="p">,</span><span class="s1">&#39;dc2&#39;</span><span class="p">,</span><span class="s1">&#39;dc3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clear_plots</span><span class="p">([</span><span class="s1">&#39;dc1&#39;</span><span class="p">,</span><span class="s1">&#39;dc2&#39;</span><span class="p">,</span><span class="s1">&#39;dc3&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="ngspicepy.reset">
+<code class="descclassname">ngspicepy.</code><code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ngspicepy/ngspicepy.html#reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ngspicepy.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as calling clear_plots(). Resets the ngspice environment.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ngspicepy.netlist.html" class="btn btn-neutral float-right" title="ngspicepy.netlist package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="ngspicepy" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Ashwith Jerome Rego, Jyoti Dhakal.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quickstart &mdash; ngspicepy 0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="ngspicepy 0 documentation" href="index.html"/>
+        <link rel="next" title="Known Issues" href="knownissues.html"/>
+        <link rel="prev" title="Installation" href="installation.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ngspicepy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-api-wrapper">Using the API Wrapper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-netlist-class">Using the Netlist class</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="knownissues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">ngspicepy</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ngspicepy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="using-the-api-wrapper">
+<h2>Using the API Wrapper<a class="headerlink" href="#using-the-api-wrapper" title="Permalink to this headline">¶</a></h2>
+<p>With ngspicepy installed, you can import it using</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ngspicepy</span> <span class="k">as</span> <span class="nn">ng</span>
+</pre></div>
+</div>
+<p>The library gives you access to several functions. First, you need to load a
+netlist. You can do so by specifying the filename that contains the netlist:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">ng</span><span class="o">.</span><span class="n">load_netlist</span><span class="p">(</span><span class="s1">&#39;circuit.net&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The extension doesn&#8217;t matter. Any text file containing a valid SPICE netlist
+will work. The function also accepts other ways to import netlist. Consult the
+documentation for more information.</p>
+<p>Next you may want to run a simulation, say a DC simulation where the voltage of
+source V1 is varied from 0V to 10V in steps of 0.1V.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">ng</span><span class="o">.</span><span class="n">run_dc</span><span class="p">(</span><span class="s1">&#39;v1 0 10 0.1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Currently, there are functions for AC, DC, TRAN and OP analyses. The functions
+provided check the input arguments for correctness since ngspice, at times,
+crashes when given wrong commands. For other types of analyses, you can
+directly run a valid ngspice command using,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">ng</span><span class="o">.</span><span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;dc v1 0 10 0.1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the list of available commands, please consult the ngspice manual.</p>
+<p>Next you can get the results. A simulation generates several vectors. You can
+get a list of these vector names using,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">vecs</span> <span class="o">=</span> <span class="n">ng</span><span class="o">.</span><span class="n">get_vector_names</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>where <code class="code python docutils literal"><span class="name"><span class="pre">vecs</span></span></code> contains a list of strings. Suppose you&#8217;re interested in
+the voltage at node &#8216;1&#8217;. The name of the corresponding vector is &#8216;v(1)&#8217;. You
+can get it&#8217;s contents using,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">vec_data</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="s1">&#39;v(1)&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to get all of the data,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">vecs_data</span> <span class="o">=</span> <span class="n">get_all_data</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-the-netlist-class">
+<h2>Using the Netlist class<a class="headerlink" href="#using-the-netlist-class" title="Permalink to this headline">¶</a></h2>
+<p>With ngspicepy installed you can import Netlist from is as:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ngspicepy</span> <span class="k">import</span> <span class="n">Netlist</span>
+</pre></div>
+</div>
+<p>To plot the results import matplotlib and numpy as well using the command</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<p>The Netlist class gives you the acces to several functions to carry out
+simulation and get the data. Suppose you want to perform a TRAN analysis with
+the netlist for the circuit in the file name &#8216;CS-Amp.cir&#8217;
+Then the first step to carry out is load the netlist as:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span> <span class="o">=</span> <span class="n">Netlist</span><span class="p">(</span><span class="s1">&#39;CS-Amp.Cir&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The extension doesn&#8217;t matter. Any tex file containg a valied SPICE netlist
+will work.
+Next, you want the initial time step to be &#8216;1u&#8217; and and the simulation to stop
+at &#8216;10m&#8217;. You can set the parameter using the set_simu function as:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">setup_sim</span><span class="p">(</span><span class="s1">&#39;tran&#39;</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="s1">&#39;1u&#39;</span><span class="p">,</span> <span class="n">tstop</span><span class="o">=</span><span class="s1">&#39;10m&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After setting up the parameters you just need to run the simulation as:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For now the process of simulation setup and run has been completed. Now you can
+run the simulation number of times and extract the vectors associated with the
+plot names.
+In order to get the various vectors associated with TRAN analysis simply type:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">get_vectors_names</span><span class="p">(</span><span class="s1">&#39;tran1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also access each of these vectors individually by specifying the plot
+names. If no plot name is specified it gets the vector of the latest plot. The
+vectors associated with TRAN analysis are &#8216;time&#8217;, &#8216;nin&#8217;, &#8216;nout&#8217;. Each of these
+can be accessed as:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="s1">&#39;nin&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">amp</span><span class="o">.</span><span class="n">get_vector</span><span class="p">(</span><span class="s1">&#39;nout&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, you can plot the results using matplotlib</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="mi">1</span><span class="n">e3</span><span class="p">,</span> <span class="mi">1</span><span class="n">e6</span> <span class="o">*</span> <span class="n">v_in_small_signal</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="mi">1</span><span class="n">e3</span><span class="p">,</span> <span class="mi">1</span><span class="n">e6</span> <span class="o">*</span> <span class="n">v_out_small_signal</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;Input&#39;</span><span class="p">,</span> <span class="s1">&#39;Output&#39;</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ms)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Voltage ($\mu$V)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Common Source Amplifier&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/plot.png"><img alt="_images/plot.png" class="align-center" src="_images/plot.png" style="width: 4in;" /></a>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="knownissues.html" class="btn btn-neutral float-right" title="Known Issues" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Ashwith Jerome Rego, Jyoti Dhakal.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

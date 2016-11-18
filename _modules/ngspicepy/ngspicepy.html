@@ -1,0 +1,894 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ngspicepy.ngspicepy &mdash; ngspicepy 0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="ngspicepy 0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> ngspicepy
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../knownissues.html">Known Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">ngspicepy</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">ngspicepy</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>ngspicepy.ngspicepy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ngspicepy.ngspicepy</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;The API wrapper for ngspice&#39;s shared library.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="k">import</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">,</span> <span class="n">c_double</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_short</span><span class="p">,</span>\
+    <span class="n">c_void_p</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">cdll</span><span class="p">,</span> <span class="n">CFUNCTYPE</span><span class="p">,</span> <span class="n">create_string_buffer</span><span class="p">,</span>\
+    <span class="n">POINTER</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="k">import</span> <span class="n">Queue</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Load the ngspice shared library.</span>
+<span class="c1"># TODO: Figure out the path intelligently</span>
+<span class="n">libpath</span> <span class="o">=</span> <span class="s2">&quot;/usr/local/lib/libngspice.so.0&quot;</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">libpath</span><span class="p">):</span>
+    <span class="n">libngspice</span> <span class="o">=</span> <span class="n">cdll</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="n">libpath</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s1">&#39;Shared library libngspice.so not found in &#39;</span> <span class="o">+</span> <span class="n">libpath</span><span class="p">)</span>
+
+<span class="n">send_char_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+<span class="n">send_stat_queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+<span class="n">is_simulating</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># enums for v_type.</span>
+<span class="c1"># See src/include/ngspice/sim.h in the ngspice source.</span>
+<span class="k">class</span> <span class="nc">v_types</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Definition for the values for v_types.&quot;&quot;&quot;</span>
+
+    <span class="n">SV_NOTYPE</span>         <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">SV_TIME</span>           <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SV_FREQUENCY</span>      <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">SV_VOLTAGE</span>        <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">SV_CURRENT</span>        <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">SV_OUTPUT_N_DENS</span>  <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">SV_OUTPUT_NOISE</span>   <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">SV_INPUT_N_DENS</span>   <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">SV_INPUT_NOISE</span>    <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">SV_POLE</span>           <span class="o">=</span> <span class="mi">9</span>
+    <span class="n">SV_ZERO</span>           <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">SV_SPARAM</span>         <span class="o">=</span> <span class="mi">11</span>
+    <span class="n">SV_TEMP</span>           <span class="o">=</span> <span class="mi">12</span>
+    <span class="n">SV_RES</span>            <span class="o">=</span> <span class="mi">13</span>
+    <span class="n">SV_IMPEDANCE</span>      <span class="o">=</span> <span class="mi">14</span>
+    <span class="n">SV_ADMITTANCE</span>     <span class="o">=</span> <span class="mi">15</span>
+    <span class="n">SV_POWER</span>          <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">SV_PHASE</span>          <span class="o">=</span> <span class="mi">17</span>
+    <span class="n">SV_DB</span>             <span class="o">=</span> <span class="mi">18</span>
+    <span class="n">SV_CAPACITANCE</span>    <span class="o">=</span> <span class="mi">19</span>
+    <span class="n">SV_CHARGE</span>         <span class="o">=</span> <span class="mi">20</span>
+
+
+<span class="c1"># enums for v_flags.</span>
+<span class="c1"># See src/include/ngspice/dvec.h in the ngspice source.</span>
+<span class="k">class</span> <span class="nc">v_flags</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Bit fields for v_flags.&quot;&quot;&quot;</span>
+
+    <span class="n">VF_REAL</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">VF_COMPLEX</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">VF_ACCUM</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">VF_PLOT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">VF_PRINT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">VF_MINGIVEN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">VF_MAXGIVEN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">VF_PERMANENT</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="c1"># ngspice scale factors</span>
+<span class="n">scale_factors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;meg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e6&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e12&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e9&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e3&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e-3&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e-6&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e-9&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e-12&#39;</span>
+<span class="n">scale_factors</span><span class="p">[</span><span class="s1">&#39;f&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;e-15&#39;</span>
+
+
+<span class="c1"># C structs that are required by the shared library</span>
+<span class="k">class</span> <span class="nc">ngcomplex_t</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct ngcomplex_t.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;cx_real&quot;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;cx_imag&quot;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">)]</span>
+
+
+<span class="k">class</span> <span class="nc">vector_info</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct vector_info.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;v_name&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;v_type&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;v_flags&quot;</span><span class="p">,</span> <span class="n">c_short</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;v_realdata&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_double</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&quot;v_compdata&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">ngcomplex_t</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&quot;v_length&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">)]</span>
+
+
+<span class="k">class</span> <span class="nc">vecinfo</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct vecinfo.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;vecname&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;is_real&quot;</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;pdvec&quot;</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;pdvecscale&quot;</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">)]</span>
+
+
+<span class="k">class</span> <span class="nc">vecinfoall</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct vecinfoall.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;veccount&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;vecs&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">POINTER</span><span class="p">(</span><span class="n">vecinfo</span><span class="p">)))]</span>
+
+
+<span class="k">class</span> <span class="nc">vecvalues</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct vecvalues.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;creal&quot;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;cimag&quot;</span><span class="p">,</span> <span class="n">c_double</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;is_scale&quot;</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;is_complex&quot;</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">)]</span>
+
+
+<span class="k">class</span> <span class="nc">vecvaluesall</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ctypes definition for struct vecvaluesall.&quot;&quot;&quot;</span>
+
+    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;veccount&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;vecindex&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&quot;vecsa&quot;</span><span class="p">,</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">POINTER</span><span class="p">(</span><span class="n">vecvalues</span><span class="p">)))]</span>
+
+
+<span class="c1"># Callback functions</span>
+<span class="nd">@CFUNCTYPE</span><span class="p">(</span><span class="n">c_int</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_bool</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">ControlledExit</span><span class="p">(</span><span class="n">exit_status</span><span class="p">,</span> <span class="n">is_unload</span><span class="p">,</span> <span class="n">is_quit</span><span class="p">,</span>
+                   <span class="n">lib_id</span><span class="p">,</span> <span class="n">ret_ptr</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;Callback function called when one exits from ngspice.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exit_status</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_quit</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s1">&#39;Invalid command or netlist.&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="nd">@CFUNCTYPE</span><span class="p">(</span><span class="n">c_int</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">SendChar</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">lib_id</span><span class="p">,</span> <span class="n">ret_ptr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Callback function that captures what&#39;s sent by ngspice to stdout.&quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">send_char_queue</span>
+
+    <span class="n">clean_output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;stdout&#39;</span> <span class="ow">in</span> <span class="n">clean_output</span><span class="p">:</span>
+        <span class="n">to_print</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clean_output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;ngspice&quot;</span> <span class="ow">in</span> <span class="n">to_print</span> <span class="ow">and</span> <span class="s2">&quot;done&quot;</span> <span class="ow">in</span> <span class="n">to_print</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">send_char_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;Quitting ngspice&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;Note: &#39;quit&#39; asks for detaching ngspice.dll&quot;</span>\
+                <span class="ow">in</span> <span class="n">to_print</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">to_print</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">whitespace</span><span class="p">:</span>
+            <span class="n">send_char_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">to_print</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="s1">&#39;stderr&#39;</span> <span class="ow">in</span> <span class="n">clean_output</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">if</span> <span class="s1">&#39;warning&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">clean_output</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">SystemError</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clean_output</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">send_char_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">clean_output</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="nd">@CFUNCTYPE</span><span class="p">(</span><span class="n">c_int</span><span class="p">,</span> <span class="n">c_char_p</span><span class="p">,</span> <span class="n">c_int</span><span class="p">,</span> <span class="n">c_void_p</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">SendStat</span><span class="p">(</span><span class="n">sim_stat</span><span class="p">,</span> <span class="n">lib_id</span><span class="p">,</span> <span class="n">ret_ptr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Callback function that captures status messages.&quot;&quot;&quot;</span>
+    <span class="n">send_stat_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">sim_stat</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="c1"># Initialize ngspice</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Init</span><span class="p">(</span><span class="n">SendChar</span><span class="p">,</span> <span class="n">SendStat</span><span class="p">,</span> <span class="n">ControlledExit</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># Specify API argument types and return types</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Command</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">c_char_p</span><span class="p">]</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngGet_Vec_Info</span><span class="o">.</span><span class="n">argtypes</span>  <span class="o">=</span> <span class="p">[</span><span class="n">c_char_p</span><span class="p">]</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Circ</span><span class="o">.</span><span class="n">argtypes</span>    <span class="o">=</span> <span class="p">[</span><span class="n">POINTER</span><span class="p">(</span><span class="n">c_char_p</span><span class="p">)]</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_AllVecs</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">c_char_p</span><span class="p">]</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Command</span><span class="o">.</span><span class="n">restype</span>  <span class="o">=</span> <span class="n">c_int</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_running</span><span class="o">.</span><span class="n">restype</span>  <span class="o">=</span> <span class="n">c_int</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngGet_Vec_Info</span><span class="o">.</span><span class="n">restype</span>   <span class="o">=</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">vector_info</span><span class="p">)</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Circ</span><span class="o">.</span><span class="n">restype</span>     <span class="o">=</span> <span class="n">c_int</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_CurPlot</span><span class="o">.</span><span class="n">restype</span>  <span class="o">=</span> <span class="n">c_char_p</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_AllPlots</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_char_p</span><span class="p">)</span>
+<span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_AllVecs</span><span class="o">.</span><span class="n">restype</span>  <span class="o">=</span> <span class="n">POINTER</span><span class="p">(</span><span class="n">c_char_p</span><span class="p">)</span>
+
+
+<span class="c1"># Utility functions</span>
+<span class="k">def</span> <span class="nf">xstr</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Like str(), except that None is converted to &#39;&#39;.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">to_num</span><span class="p">(</span><span class="n">ng_number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert an ngspice number to a float.</span>
+<span class="sd">    </span>
+<span class="sd">    ng_number - a string containing a number that ngspice recognizes. This can</span>
+<span class="sd">    either be a float or a number with the appropriate scale factor.</span>
+<span class="sd">    </span>
+<span class="sd">    Examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; to_num(&#39;1.3&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; to_num(&#39;1Meg&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_text</span> <span class="o">=</span> <span class="n">ng_number</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">scale_factor</span> <span class="ow">in</span> <span class="n">scale_factors</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scale_factor</span> <span class="ow">in</span> <span class="n">num_text</span><span class="p">:</span>
+            <span class="n">num_text</span> <span class="o">=</span> <span class="n">num_text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">,</span>
+                                        <span class="n">scale_factors</span><span class="p">[</span><span class="n">scale_factor</span><span class="p">])</span>
+            <span class="k">break</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">num_text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid ngspice number: &#39;</span> <span class="o">+</span> <span class="n">ng_number</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_sim_param</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if start &lt; stop if step is positive and start &gt; stop otherwise.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        start : int</span>
+<span class="sd">            Denotes the start point of dc voltage or</span>
+<span class="sd">            frequecny.</span>
+<span class="sd">        stop : int</span>
+<span class="sd">            Denotes the stop point of dc voltage or frequencyor of transient</span>
+<span class="sd">            analysis.</span>
+<span class="sd">        step : int</span>
+<span class="sd">            Denotes the step size of the dc, ac or transient analysis.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;step size is zero&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">stop</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;step size &gt; 0 but stop &lt; start &quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">stop</span> <span class="o">&gt;</span> <span class="n">start</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;step size &lt; 0 but stop &gt; start&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;All good&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">__parse__</span><span class="p">(</span><span class="n">sim_cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse the arguments and check for correctness depending on the simulation chosen .</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        sim_cmd : str</span>
+<span class="sd">            It denotes the type of the simulation to be run either dc, ac, tran or</span>
+<span class="sd">            op</span>
+<span class="sd">        *args </span>
+<span class="sd">            A single string containing the source(s) followed by their start, stop</span>
+<span class="sd">            and step values.</span>
+<span class="sd">        **kwargs </span>
+<span class="sd">            The arguments specified as keyword arguments</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        ac simulation</span>
+<span class="sd">            &gt;&gt;&gt; parsed_args = __parse__(&#39;ac&#39;, &#39;dec 10 1 10&#39;)</span>
+<span class="sd">        dc simulation</span>
+<span class="sd">            &gt;&gt;&gt; parsed_args = __parse__(&#39;dc&#39;, &#39; v1 0 1 .1&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cmd_dc</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;src&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;stop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;src2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;start2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;stop2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_dc</span><span class="p">[</span><span class="s1">&#39;step2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">is_parametric</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">pdc_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">]</span>
+    <span class="n">cmd_ac</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">cmd_ac</span><span class="p">[</span><span class="s1">&#39;variation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_ac</span><span class="p">[</span><span class="s1">&#39;npoints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_ac</span><span class="p">[</span><span class="s1">&#39;fstart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_ac</span><span class="p">[</span><span class="s1">&#39;fstop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">pac_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fstart&#39;</span><span class="p">,</span> <span class="s1">&#39;fstop&#39;</span><span class="p">,</span> <span class="s1">&#39;npoints&#39;</span><span class="p">]</span>
+    <span class="n">cmd_tran</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">cmd_tran</span><span class="p">[</span><span class="s1">&#39;tstep&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_tran</span><span class="p">[</span><span class="s1">&#39;tstop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">cmd_tran</span><span class="p">[</span><span class="s1">&#39;tstart&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+    <span class="n">cmd_tran</span><span class="p">[</span><span class="s1">&#39;tmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">ptran_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tstart&#39;</span><span class="p">,</span> <span class="s1">&#39;tstop&#39;</span><span class="p">,</span> <span class="s1">&#39;tstep&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">sim_cmd</span> <span class="o">==</span> <span class="s1">&#39;ac&#39;</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd_ac</span>
+        <span class="n">p_keys</span> <span class="o">=</span> <span class="n">pac_keys</span>
+        <span class="n">required_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;variation&#39;</span><span class="p">,</span> <span class="s1">&#39;npoints&#39;</span><span class="p">,</span> <span class="s1">&#39;fstart&#39;</span><span class="p">,</span> <span class="s1">&#39;fstop&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">sim_cmd</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd_dc</span>
+        <span class="n">p_keys</span> <span class="o">=</span> <span class="n">pdc_keys</span>
+        <span class="n">required_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">sim_cmd</span> <span class="o">==</span> <span class="s1">&#39;tran&#39;</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd_tran</span>
+        <span class="n">p_keys</span> <span class="o">=</span> <span class="n">ptran_keys</span>
+        <span class="n">required_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;tstep&#39;</span><span class="p">,</span> <span class="s1">&#39;tstop&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Parse arguments:</span>
+    <span class="c1">#</span>
+    <span class="c1"># Case 1:</span>
+    <span class="c1"># If just one arg is given, assume that the entire string is a</span>
+    <span class="c1"># command. Separate it out and assign it to the cmd dictionary</span>
+    <span class="c1"># for error checking.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">clean_arg</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">clean_arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)):</span>
+            <span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">xstr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Case 2:</span>
+        <span class="c1"># If the simulation args are given as comma separated values,</span>
+        <span class="c1"># assign them to the dictionary for error checking.</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">args</span><span class="p">):</span>
+            <span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">xstr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="c1"># Case 3:</span>
+    <span class="c1"># Finally parse the keyword args. Overwrite any args that</span>
+    <span class="c1"># were already given.</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;invalid keyword argument&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">xstr</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+    <span class="c1"># Check if the arguments were entered correctly:</span>
+    <span class="c1">#</span>
+    <span class="c1"># 1. Checks for first source</span>
+    <span class="c1"># Check if any of the required arguments are empty.</span>
+    <span class="n">empty_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cmd</span> <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span> <span class="ow">in</span> <span class="n">empty_args</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">required_args</span><span class="p">):</span>
+        <span class="n">missing_args</span> <span class="o">=</span>\
+            <span class="n">empty_args</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">required_args</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Arguments missing: &#39;</span> <span class="o">+</span>
+                         <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_args</span><span class="p">))</span>
+
+    <span class="c1"># 2. Checks for the second source</span>
+    <span class="c1">#</span>
+    <span class="c1"># 2a. Arguments of fsecond source given, check if source is given.</span>
+    <span class="k">if</span> <span class="n">sim_cmd</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span><span class="p">:</span>
+        <span class="n">required_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">7</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">empty_args</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">required_args</span><span class="p">)</span> <span class="ow">and</span>\
+                <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;src2&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Second source not specified.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 2b. Second source is specified, check if its required arguments</span>
+    <span class="c1"># are empty.</span>
+        <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;src2&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">required_args</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">keys</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">7</span><span class="p">]])</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span> <span class="ow">in</span> <span class="n">empty_args</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">required_args</span><span class="p">):</span>
+                <span class="n">missing_args</span> <span class="o">=</span> <span class="n">empty_args</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">required_args</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Arguments missing: &#39;</span> <span class="o">+</span>
+                                 <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing_args</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">is_parametric</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Check if the arguments are correct, i.e., is start &lt; stop if</span>
+    <span class="c1"># step is positive, is start &gt; stop if step is negative, is</span>
+    <span class="c1"># start != step?</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="n">p_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="n">stop</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="n">p_keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="n">p_keys</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="n">is_good</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">check_sim_param</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_good</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Wrong values&#39;</span><span class="p">)</span>
+    <span class="c1"># Do the same for the second source if it exists.</span>
+
+    <span class="k">if</span> <span class="n">sim_cmd</span> <span class="o">==</span> <span class="s1">&#39;dc&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_parametric</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;start2&#39;</span><span class="p">])</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;stop2&#39;</span><span class="p">])</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">to_num</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="s1">&#39;step2&#39;</span><span class="p">])</span>
+            <span class="n">is_good</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">check_sim_param</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_good</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Wrong Values&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cmd</span> <span class="k">if</span> <span class="n">cmd</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+
+<span class="c1"># User functions</span>
+<div class="viewcode-block" id="send_command"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.send_command">[docs]</a><span class="k">def</span> <span class="nf">send_command</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Send a command to ngspice.</span>
+
+<span class="sd">    The argument `command` is string that contains a valid ngspice</span>
+<span class="sd">    command. See the chapter &#39;Interactive Interpreter&#39; of the ngspice</span>
+<span class="sd">    manual: http://ngspice.sourceforge.net/docs/ngspice26-manual.pdf</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">send_stat_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="n">send_stat_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+
+    <span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Command</span><span class="p">(</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">send_char_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">send_char_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="run_dc"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.run_dc">[docs]</a><span class="k">def</span> <span class="nf">run_dc</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">r&quot;&quot;&quot;Run a DC simulation on ngspice.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        ``*args``</span>
+<span class="sd">            1. A single string containing the source(s) followed by their</span>
+<span class="sd">               start, stop and step values.</span>
+<span class="sd">            2. src, start, stop, step[, src2, start, stop, step]</span>
+
+<span class="sd">        ``**kwargs``</span>
+<span class="sd">            The arguments specified as keyword arugments</span>
+
+<span class="sd">        src and src2 must be strings. start, stop and step can be either</span>
+<span class="sd">        strings or floats. If they are strings, they must contain only a</span>
+<span class="sd">        float and optionally one of ngspice&#39;s scale factors and no spaces.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; run_dc(&#39;v1 0 1 0.1&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_dc(&#39;v2 0 1 1m v2 0 1 0.3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_dc(&#39;v1&#39;, 0, &#39;1meg&#39;, &#39;1k&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_dc(src=&#39;v1&#39;, start=0, stop=1, step=0.1\\</span>
+<span class="sd">                   src2=&#39;v2&#39;, start2=0, step2=0.3, stop2=1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parsed_args</span> <span class="o">=</span> <span class="n">__parse__</span><span class="p">(</span><span class="s1">&#39;dc&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;dc &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="run_ac"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.run_ac">[docs]</a><span class="k">def</span> <span class="nf">run_ac</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run an AC simulation on ngspice.</span>
+<span class="sd">    </span>
+<span class="sd">    An AC simulation requires one to specify the start (`fstart`) and stop</span>
+<span class="sd">    (`fstop`) frequecies, the type of `variation` (dec/oct/lin) and the number</span>
+<span class="sd">    of</span>
+<span class="sd">    points (`npoints`; per decade or octave if dec or oct are used)</span>
+
+<span class="sd">    Parameters </span>
+<span class="sd">        ``*args``</span>
+<span class="sd">            A single string of the form &#39;&lt;variation&gt; &lt;npoints&gt; &lt;fstart&gt; &lt;fstop&gt;&#39;</span>
+<span class="sd">        ``*kwargs``</span>
+<span class="sd">            The arguements in variation, npoints, fstart or fstop specified as</span>
+<span class="sd">            keyword arguments</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; run_ac(&#39;dec 10 1 10&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_ac(&#39;dec 10 1k 10meg&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_ac(&#39;dec&#39;, 10, &#39;1k&#39;, &#39;100k&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_ac(variation=&#39;dec&#39;, npoints=0, fstart=1, fstop=10)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parsed_args</span> <span class="o">=</span> <span class="n">__parse__</span><span class="p">(</span><span class="s1">&#39;ac&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;ac &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="run_tran"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.run_tran">[docs]</a><span class="k">def</span> <span class="nf">run_tran</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run a TRAN simulation on ngspice.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        ``*args``</span>
+<span class="sd">            1. A single string containing tstep, tstop, tstart, tmax and uic</span>
+<span class="sd">            values.</span>
+<span class="sd">            2. The values of tmax and uic are optional.</span>
+<span class="sd">            3. tstep, tstop[, tstart, tmax, uic]</span>
+
+<span class="sd">        ``**kwargs``</span>
+<span class="sd">            The arguments in 2 specified as keyword arguments.</span>
+<span class="sd">            </span>
+<span class="sd">        start, stop and step can be either strings or floats. If they are string,</span>
+<span class="sd">        they must contain only a float and optionally one of the ngspice&#39;s scale</span>
+<span class="sd">        factor ans no spaces. </span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; run_tran(&#39;1 10 0 11 &#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_tran(&#39;1ns 10ns 0 11ns&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_tran(&#39;1ns&#39;, 0, &#39;10ns&#39;, &#39;11ns&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; run_tran(tstep=1, tstop=10, tstart=0, tmax=11)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parsed_args</span> <span class="o">=</span> <span class="n">__parse__</span><span class="p">(</span><span class="s1">&#39;tran&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;tran &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parsed_args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="run_op"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.run_op">[docs]</a><span class="k">def</span> <span class="nf">run_op</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Run operating point analysis.&quot;&quot;&quot;</span>
+    <span class="n">op_result</span> <span class="o">=</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;op&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">op_result</span></div>
+
+
+<div class="viewcode-block" id="clear_plots"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.clear_plots">[docs]</a><span class="k">def</span> <span class="nf">clear_plots</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clear the specified plots names.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        ``*args``</span>
+<span class="sd">            1. Empty, which will clear all plots.</span>
+<span class="sd">            2. Multiple arguments, each containing the name of a plot (a string).</span>
+<span class="sd">            3. A string containing comma separated names of the plots that need to</span>
+<span class="sd">               be deleted.</span>
+<span class="sd">            4. A list or tuple of strings contianing the plots that need to be</span>
+<span class="sd">               deleted.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; clear_plots()</span>
+<span class="sd">        &gt;&gt;&gt; clear_plots(&#39;dc dc2 dc3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; clear_plots((&#39;dc1&#39;,&#39;dc2&#39;,&#39;dc3&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; clear_plots(&#39;dc1&#39;,&#39;dc2&#39;,&#39;dc3&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; clear_plots([&#39;dc1&#39;,&#39;dc2&#39;,&#39;dc3&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">clear_cmd</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">clear_cmd</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+            <span class="n">clear_cmd</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Type must be string,list or tuple&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">clear_cmd</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;destroy &#39;</span> <span class="o">+</span> <span class="n">clear_cmd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="reset"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.reset">[docs]</a><span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Same as calling clear_plots(). Resets the ngspice environment.&quot;&quot;&quot;</span>
+    <span class="n">clear_plots</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="get_plot_names"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.get_plot_names">[docs]</a><span class="k">def</span> <span class="nf">get_plot_names</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of plot names.</span>
+
+<span class="sd">    A plot is the name for a group of vectors.</span>
+<span class="sd">    </span>
+<span class="sd">    Example:</span>
+<span class="sd">        A DC simulation run right after ngspice is loaded creates a plot called</span>
+<span class="sd">        dc1 which contains the vectors generated by the DC simulation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plot_name_array</span> <span class="o">=</span> <span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_AllPlots</span><span class="p">()</span>
+    <span class="n">names_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">plot_name_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">names_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">plot_name_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">names_list</span></div>
+
+
+<div class="viewcode-block" id="current_plot"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.current_plot">[docs]</a><span class="k">def</span> <span class="nf">current_plot</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return the name of the current plot.&quot;&quot;&quot;</span>
+    <span class="n">plot_name</span> <span class="o">=</span> <span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_CurPlot</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">plot_name</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="get_vector_names"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.get_vector_names">[docs]</a><span class="k">def</span> <span class="nf">get_vector_names</span><span class="p">(</span><span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of the names of the vectors in the given plot.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameter:</span>
+<span class="sd">    plot_name : str</span>
+<span class="sd">    specifies the plot whose vectors need to be returned. If it</span>
+<span class="sd">    unspecified, the vector names from the current plot are returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plot_name</span> <span class="o">=</span> <span class="n">current_plot</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">get_plot_names</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Given plot name doesn&#39;t exist&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">vector_names</span> <span class="o">=</span> <span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_AllVecs</span><span class="p">(</span>
+            <span class="n">create_string_buffer</span><span class="p">(</span><span class="n">plot_name</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span>
+    <span class="n">names_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">vector_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">names_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">vector_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">names_list</span></div>
+
+
+<div class="viewcode-block" id="get_data"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.get_data">[docs]</a><span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="n">vector_arg</span><span class="p">,</span> <span class="n">plot_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the data in a vector as a numpy array.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        vector_arg</span>
+<span class="sd">            denotes the vector name</span>
+<span class="sd">        plot_agr</span>
+<span class="sd">            denotes the plot name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">vector_arg</span><span class="p">:</span>
+        <span class="n">plot_name</span><span class="p">,</span> <span class="n">vector_name</span> <span class="o">=</span> <span class="n">vector_arg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vector_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">get_vector_names</span><span class="p">(</span><span class="n">plot_name</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Incorrect vector name&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">vector_arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">get_vector_names</span><span class="p">(</span><span class="n">plot_arg</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Incorrect vector name&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_arg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vector_arg</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">plot_arg</span><span class="p">,</span> <span class="n">vector_arg</span><span class="p">])</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="n">libngspice</span><span class="o">.</span><span class="n">ngGet_Vec_Info</span><span class="p">(</span>
+        <span class="n">create_string_buffer</span><span class="p">(</span><span class="n">vector_arg</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_flags</span> <span class="o">&amp;</span> <span class="n">v_flags</span><span class="o">.</span><span class="n">VF_REAL</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_realdata</span><span class="p">,</span>
+                                     <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_length</span><span class="p">,))</span>
+    <span class="k">elif</span> <span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_flags</span> <span class="o">&amp;</span> <span class="n">v_flags</span><span class="o">.</span><span class="n">VF_COMPLEX</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_compdata</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">contents</span><span class="o">.</span><span class="n">v_length</span><span class="p">,))</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;complex128&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="get_all_data"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.get_all_data">[docs]</a><span class="k">def</span> <span class="nf">get_all_data</span><span class="p">(</span><span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a dictionary of all vectors in the specified plot.</span>
+
+<span class="sd">    Parameter:</span>
+<span class="sd">        plot_name</span>
+<span class="sd">            denotes the plot name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vector_names</span> <span class="o">=</span> <span class="n">get_vector_names</span><span class="p">(</span><span class="n">plot_name</span><span class="p">)</span>
+
+    <span class="n">vector_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">vector_name</span> <span class="ow">in</span> <span class="n">vector_names</span><span class="p">:</span>
+        <span class="n">vector_data</span><span class="p">[</span><span class="n">vector_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_data</span><span class="p">(</span><span class="n">vector_name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">vector_data</span></div>
+
+
+<div class="viewcode-block" id="set_options"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.set_options">[docs]</a><span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pass simulator options to ngspice.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        ``*args``</span>
+<span class="sd">            Options can be entered as a string </span>
+<span class="sd">        ``**kwargs``</span>
+<span class="sd">            Options can be entered as keyword arguments.</span>
+<span class="sd"> </span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; set_options(trtol=1, temp=300)</span>
+<span class="sd">        &gt;&gt;&gt; set_options(&#39;trtol=1&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;option &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">option</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;option &#39;</span> <span class="o">+</span> <span class="n">option</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">option</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="load_netlist"><a class="viewcode-back" href="../../ngspicepy.html#ngspicepy.load_netlist">[docs]</a><span class="k">def</span> <span class="nf">load_netlist</span><span class="p">(</span><span class="n">netlist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load ngspice with the specified netlist.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        netlist : str</span>
+<span class="sd">            1. The path to a file that contains the netlist.</span>
+<span class="sd">            2. A list of strings where each string is one line of the netlist.</span>
+<span class="sd">            3. A string containing the entire netlist with each line separated by a</span>
+<span class="sd">               newline character.</span>
+
+<span class="sd">        The function does not check if the netlist is valid. An invalid</span>
+<span class="sd">        netlist may cause ngspice to crash.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">netlist</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">netlist</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">send_command</span><span class="p">(</span><span class="s1">&#39;source &#39;</span> <span class="o">+</span> <span class="n">netlist</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">netlist</span><span class="p">:</span>
+            <span class="n">netlist_list</span> <span class="o">=</span> <span class="n">netlist</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid netlist file or string&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">netlist</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">netlist_list</span> <span class="o">=</span> <span class="n">netlist</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Netlist format unsupported.</span><span class="se">\</span>
+<span class="s1">                Must be a string or list&#39;</span><span class="p">)</span>
+
+    <span class="n">c_char_p_array</span> <span class="o">=</span> <span class="n">c_char_p</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">netlist_list</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">netlist_str</span> <span class="o">=</span> <span class="n">c_char_p_array</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">netlist_list</span><span class="p">):</span>
+        <span class="n">netlist_str</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">create_string_buffer</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">encode</span><span class="p">()),</span> <span class="n">c_char_p</span><span class="p">)</span>
+    <span class="n">netlist_str</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">netlist_list</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">libngspice</span><span class="o">.</span><span class="n">ngSpice_Circ</span><span class="p">(</span><span class="n">netlist_str</span><span class="p">)</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">send_char_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">send_char_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Ashwith Jerome Rego, Jyoti Dhakal.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
