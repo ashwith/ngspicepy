@@ -83,7 +83,7 @@ class Netlist(object):
 
         return ng.get_plot_names()
 
-    def get_vector_names(self, plot_name):
+    def get_vector_names(self, plot_name=None):
         """Return a list of the names of the vectors in the given plot.
 
         plot_name specifies the plot whose vectors need to be returned. If
@@ -92,7 +92,7 @@ class Netlist(object):
         """
         return ng.get_vector_names(plot_name)
 
-    def get_vector(self, vector_name, plot_name):
+    def get_vector(self, vector_name, plot_name=None):
         """Enables the user to get the data available in a given vector
 
         vector_arg denotes the vector name
@@ -100,7 +100,7 @@ class Netlist(object):
 
         return ng.get_data(vector_name, plot_name)
 
-    def get_vectors(self, plot_name):
+    def get_vectors(self, plot_name=None):
         """Return a dictionary of all vectors in the specified plot."""
 
         return ng.get_all_data(plot_name)
@@ -173,13 +173,13 @@ class Netlist(object):
                                      "':\n" + line)
                 # Check if it is a valid command
                 elif line[0] == '.':
-                    command  = line[1:].split()[0].upper()  # First word after
+                    command = line[1:].split()[0].upper()  # First word after
                                                             # the dot is the
                                                             # command
                     # Ensure the command is valid
                     if command not in valid_commands:
                         raise ValueError("Unable to parse line " + str(idx) +
-                                         "unknown command '" + 
+                                         "unknown command '" +
                                          command + "':\n" +
                                          line)
 
