@@ -161,7 +161,11 @@ def SendChar(output, lib_id, ret_ptr):
         elif to_print not in string.whitespace:
             send_char_queue.put(to_print)
     elif 'stderr' in clean_output:  # pragma: no cover
-        raise SystemError(" ".join(clean_output.split(' ')[1:]))
+        if 'warning' not in clean_output.lower():
+            raise SystemError(" ".join(clean_output.split(' ')[1:]))
+        else:
+            send_char_queue.put(clean_output)
+    return 0
     return 0
 
 
