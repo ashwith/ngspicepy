@@ -5,7 +5,8 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR    = ../../ngspicepy-docs
+BUILDDIR    = build
+BUILDGHPAGE = ../../ngspicepy-docs
 PDFBUILDDIR = /tmp
 PDF     = ../manual.pdf
 
@@ -52,6 +53,11 @@ clean:
 
 .PHONY: html
 html:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+htmlghp:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
