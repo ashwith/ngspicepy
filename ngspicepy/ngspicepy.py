@@ -210,9 +210,10 @@ def to_num(ng_number):
     either be a float or a number with the appropriate scale factor.
     
     Examples:
+    ---------
 
-    to_num('1.3')
-    to_num('1Meg')
+    >>> to_num('1.3')
+    >>> to_num('1Meg')
     """
     num_text = ng_number.lower()
     for scale_factor in scale_factors:
@@ -228,7 +229,21 @@ def to_num(ng_number):
 
 
 def check_sim_param(start, stop, step=None):
-    """Check if start < stop if step is positive and start > stop otherwise."""
+    """Check if start < stop if step is positive and start > stop otherwise.
+
+    Parameters
+    ----------
+
+    start : int
+        It denotes the start point of dc voltage or
+        frequecny.
+    stop : int
+        It denotes the stop point of dc voltage or frequencyor of transient
+    analysis.
+    step : int
+        It denotes the step size of the dc, ac or transient analysis.
+
+    """
     if step is None:
         step = 1
     if step == 0:
@@ -241,7 +256,26 @@ def check_sim_param(start, stop, step=None):
 
 
 def __parse__(sim_cmd, *args, **kwargs):
-    """Parse the arguments and check for correctness depending on the simulation chosen."""
+    """Parse the arguments and check for correctness depending on the simulation chosen .
+
+    Parameters
+    ----------
+    sim_cmd : str
+        It denotes the type of the simulation to be run either dc, ac, tran or
+        op
+    *args 
+        A single string containing the source(s) followed by their start, stop
+        and step values.
+    **kwargs 
+        The arguments specified as keyword arguments
+
+    Example
+    -------
+    ac simulation
+        >>> parsed_args = __parse__('ac', 'dec 10 1 10')
+    dc simulation
+        >>> parsed_args = __parse__('dc', ' v1 0 1 .1')
+    """
     cmd_dc = OrderedDict()
     cmd_dc['src'] = ""
     cmd_dc['start'] = ""
@@ -326,7 +360,7 @@ def __parse__(sim_cmd, *args, **kwargs):
     # 2. Checks for the second source
     # -------------------------------
     #
-    # 2a. Arguments of second source given, check if source is given.
+    # 2a. Arguments of fsecond source given, check if source is given.
     if sim_cmd == 'dc':
         required_args = set([keys[5], keys[6], keys[7]])
         if any(arg not in empty_args for arg in required_args) and\
@@ -388,14 +422,16 @@ def send_command(command):
 
 
 def run_dc(*args, **kwargs):
-    """Run a DC simulation on ngspice.
+    r"""Run a DC simulation on ngspice.
 
-    The argument(s) are either:
-
-    1. A single string containing the source(s) followed by their
+    Parameters
+    ----------
+    *args
+        1. A single string containing the source(s) followed by their
        start, stop and step values.
-    2. src, start, stop, step[, src2, start, stop, step]
-    3. The arguments in 2. Specified as keyword arguments.
+        2. src, start, stop, step[, src2, start, stop, step]
+    **kwargs
+        The arguments specified as keyword arugments
 
     src and src2 must be strings. start, stop and step can be either
     strings or floats. If they are strings, they must contain only a
@@ -417,17 +453,20 @@ def run_ac(*args, **kwargs):
     """Run an AC simulation on ngspice.
     
     An AC simulation requires one to specify the start (`fstart`) and stop
-    (`fstop`) frequecies, the type of `variation` (dec/oct/lin) and the number of
+    (`fstop`) frequecies, the type of `variation` (dec/oct/lin) and the number
+    of
     points (`npoints`; per decade or octave if dec or oct are used)
 
-    The argument(s) are either:
+    Parameters 
+    ----------
+    *args 
+        A single string of the form '<variation> <npoints> <fstart> <fstop>'
+    *kwargs
+        The arguements in variation, npoints, fstart or fstop specified as
+        keyword arguments
 
-    1. A single string of the form '<variation> <npoints> <fstart> <fstop>'
-    2. variation, npoints, fstart, fstop
-    3. The arguments in 2. Specified as keyword arguments.
-
-    Examples:
-
+    Examples
+    --------
         >>> run_ac('dec 10 1 10')
         >>> run_ac('dec 10 1k 10meg')
         >>> run_ac('dec', 10, '1k', '100k')
@@ -440,19 +479,22 @@ def run_ac(*args, **kwargs):
 def run_tran(*args, **kwargs):
     """Run a TRAN simulation on ngspice.
 
-    The argument(s) are either:
+    Parameters
+    ----------
+    *args
+        1. A single string containing tstep, tstop, tstart, tmax and uic
+        values.
+        2. The values of tmax and uic are optional.
+        3. tstep, tstop[, tstart, tmax, uic]
+    **kwargs
+        The arguments in 2 specified as keyword arguments.
+        
+    start, stop and step can be either strings or floats. If they are string,
+    they must contain only a float and optionally one of the ngspice's scale
+    factor ans no spaces. 
 
-    1. A single string containing tstep, tstop, tstart, tmax and uic
-       values. The values of tmax and uic are optional.
-    2. tstep, tstop[, tstart, tmax, uic]
-    3. The arguments in 2. Specified as keyword arguments.
-
-    start, stop and step can be either strings or floats. If the are
-    strings, they must contain only a float and optionally one of
-    ngspice's scale factors and no spaces.
-
-    Examples:
-
+    Examples
+    --------
         >>> run_tran('1 10 0 11 ')
         >>> run_tran('1ns 10ns 0 11ns')
         >>> run_tran('1ns', 0, '10ns', '11ns')
@@ -470,17 +512,18 @@ def run_op():
 
 def clear_plots(*args):
     """Clear the specified plots names.
-
-    The argument(s) are either:
     
-    1. Empty, which will clear all plots.
-    2. Multiple arguments, each containing the name of a plot (a string).
-    3. A string containing comma separated names of the plots that need to be
-       deleted.
-    4. A list or tuple of strings contianing the plots that need to be deleted.
+    Parameters
+    ----------
+    *args
+        1. Empty, which will clear all plots.
+        2. Multiple arguments, each containing the name of a plot (a string).
+        3. A string containing comma separated names of the plots that need to
+        be deleted.
+        4. A list or tuple of strings contianing the plots that need to be deleted.
 
-    Examples:
-
+    Examples
+    --------
         >>> clear_plots()
         >>> clear_plots('dc dc2 dc3')
         >>> clear_plots(('dc1','dc2','dc3'))
@@ -509,8 +552,11 @@ def reset():
 def get_plot_names():
     """Return a list of plot names.
 
-    A plot is the name for a group of vectors. Example: A DC
-    simulation run right after ngspice is loaded creates a plot called
+    A plot is the name for a group of vectors.
+    
+    Example
+    -------
+    A DC simulation run right after ngspice is loaded creates a plot called
     dc1 which contains the vectors generated by the DC simulation.
     """
     plot_name_array = libngspice.ngSpice_AllPlots()
@@ -533,10 +579,12 @@ def current_plot():
 
 def get_vector_names(plot_name=None):
     """Return a list of the names of the vectors in the given plot.
-
-    `plot_name` specifies the plot whose vectors need to be returned. If
-    it unspecified, the vector names from the current plot are
-    returned.
+    
+    Parameter
+    ---------
+    plot_name : str
+        specifies the plot whose vectors need to be returned. If it
+        unspecified, the vector names from the current plot are returned.
     """
     if plot_name is None:
         plot_name = current_plot()
@@ -560,8 +608,12 @@ def get_vector_names(plot_name=None):
 def get_data(vector_arg, plot_arg=None):
     """Get the data in a vector as a numpy array.
 
-    `vector_arg` denotes the vector name
-    plot_agr denotes the plot name
+    Parameters
+    ----------
+    vector_arg
+        denotes the vector name
+    plot_agr
+        denotes the plot name
     """
     if '.' in vector_arg:
         plot_name, vector_name = vector_arg.split('.')
@@ -586,7 +638,13 @@ def get_data(vector_arg, plot_arg=None):
 
 
 def get_all_data(plot_name=None):
-    """Return a dictionary of all vectors in the specified plot."""
+    """Return a dictionary of all vectors in the specified plot.
+
+    Parameter
+    ---------
+    plot_name
+        denotes the plot name
+    """
     vector_names = get_vector_names(plot_name)
 
     vector_data = {}
@@ -599,10 +657,15 @@ def get_all_data(plot_name=None):
 def set_options(*args, **kwargs):
     """Pass simulator options to ngspice.
 
-    Options may either be entered as a string or keyword arguments.
-    
-    Examples:
-
+    Parameters
+    ----------
+    *args
+        Options can be entered as a string 
+    **kwargs
+        Options can be entered as keyword arguments.
+ 
+    Examples
+    --------
         >>> set_options(trtol=1, temp=300)
         >>> set_options('trtol=1')
     """
@@ -616,12 +679,13 @@ def set_options(*args, **kwargs):
 def load_netlist(netlist):
     """Load ngspice with the specified netlist.
 
-    The argument netlist can be one of the following:
-
-    1. The path to a file that contains the netlist.
-    2. A list of strings where each string is one line of the netlist.
-    3. A string containing the entire netlist with each line separated
-       by a newline character.
+    Parameters
+    ----------
+    netlist : str
+        1. The path to a file that contains the netlist.
+        2. A list of strings where each string is one line of the netlist.
+        3. A string containing the entire netlist with each line separated by a
+        newline character.
 
     The function does not check if the netlist is valid. An invalid
     netlist may cause ngspice to crash.
